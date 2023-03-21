@@ -194,7 +194,7 @@ int main(int argc, char *argv[]) {
         if (fork() != 0) { // parent
             wait(NULL); // wait for child
         } else {
-            strcpy(cmd, "/bin/"); // this is a placeholder. just a proof of concept to see if this concept thing works.
+            strcpy(cmd, "/bin/"); // this is a placeholder. just a proof of concept to see if this thing works.
             strcat(cmd, instructions[0]); // instructions[0] will always hold 1st command, ls, pwd, where, cat, etc..
             execv(cmd, parameters);  // execute command
         }
