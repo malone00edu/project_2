@@ -17,8 +17,9 @@ static off_t filePtrPos = 0; // current position of file with respect to read()
 static int bufSize = 10; // not in use.
 
 char *increase_buffer_size(char *payload); // not in use.
-void helper_create_tokens(char *par[], char *instr[], char *payload, char *tokens);
 void helper_input(int fd, char *payload, int type, char *fname);
+void helper_create_tokens(char *par[], char *instr[], char *payload, char *tokens);
+
 
 char *increase_buffer_size(char *payload) { // Not inuse yet... or ever?
     int multiplier = 100;
@@ -63,7 +64,7 @@ void type_goodbye() {
 }
 
 void read_command(char *par[], char *instr[], int type, char *fname) {
-    int fd = 0; // if batch is not inuse. fd = 0 (STD_FILENO) will be used from henceforth.
+    int fd = STDIN_FILENO;; // if batch is not inuse. fd = 0 (STD_FILENO) will be used from henceforth.
     static char *payload = NULL;
     size_t size; // if a file isn't being used. a placeholder of 5000 bytes will be used for read() buffer.
     char *tokens = NULL;
@@ -82,7 +83,6 @@ void read_command(char *par[], char *instr[], int type, char *fname) {
 
         }
         if (type == INTERACTIVE) {
-            fd = STDIN_FILENO; // standard helper_input for user commands.
             size = 5000;
             payload = calloc(size, sizeof(char));
         }
@@ -115,7 +115,7 @@ void helper_input(int fd, char *payload, int type, char *fname) {
     in the 1st char position of line (i.e line[0]). */
     while ((bytesRead = read(fd, line + totalBytesRead, sizeof(char))) >= 0) {
         totalBytesRead += bytesRead; //tally total number of bytes read before the if statement below forces a break.
-        if ((strcmp(&line[totalBytesRead - 1], "\n") == 0)  | (bytesRead == 0)) { // examine current byte data.
+        if ((strcmp(&line[totalBytesRead - 1], "\n") == 0)  | (bytesRead == 0)) { // use current line (byte data).
             strcpy(payload, line);
             if(type == BATCH) {
                 filePtrPos = lseek(fd, 0, SEEK_CUR); // save the last position of file ptr
@@ -126,13 +126,13 @@ void helper_input(int fd, char *payload, int type, char *fname) {
     }
 }
 
-void helper_create_tokens(char *par[], char *instr[], char *payload, char *tokens) { // create tokens from the line of instr
+void helper_create_tokens(char *par[], char *instr[], char *payload, char *tokens) { // create tokens from the payload
     tokenIndex = 0;
     tokens = strtok(payload, " \n"); // create first token.
 
     while (tokens != NULL) {
         instr[tokenIndex++] = strdup(tokens); // insert token into instructions array
-        tokens = strtok(NULL, " \n"); // get next token.
+        tokens = strtok(NULL, " \n"); // get/create next token.
     }
 
     for (int j = 0; j < tokenIndex; j++) { // create parameters from instructions. needed for execv().
