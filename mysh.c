@@ -1,4 +1,5 @@
 #define _GNU_SOURCE
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -10,9 +11,9 @@
 #include "header.h"
 
 int main(int argc, char *argv[]) {
-    int *tokenIndex = calloc(1, sizeof(int)); // total tokens created for the current set of instructions. needed for free();
-    int *filePtrPos = calloc(1, sizeof(int)); // current position of file with respect to read().
-    int *filePtrEndPos = calloc(1, sizeof(int)); // gives the end position of file with the use of lseek()
+    int *tokenIndex = calloc(1, sizeof(int)); // total tokens created for the curr set of instr. needed for free();
+    off_t *filePtrPos = calloc(1, sizeof(off_t)); // current position of file with respect to read().
+    off_t *filePtrEndPos = calloc(1, sizeof(off_t)); // gives the end position of file with the use of lseek()
 
     *tokenIndex = 0;
     *filePtrPos = 0;
@@ -45,7 +46,7 @@ int main(int argc, char *argv[]) {
         instructions = malloc(50 * sizeof(char *));
         parameters = malloc(50 * sizeof(char *));
 
-        for(int i = 0; i < 50; i++){
+        for (int i = 0; i < 50; i++) {
             instructions[i] = NULL;
             parameters[i] = NULL;
         }
@@ -65,22 +66,17 @@ int main(int argc, char *argv[]) {
                 free_pointers(cmd, parameters, instructions, tokenIndex);
                 break;
             }
-        }
-
-        // This if else is a proof of concept. It will probably look completely different after project requirements.
-        if (instructions[0] != NULL) {
             if (strcmp(instructions[0], "cd") == 0) {
                 builtin_cd(instructions);
             }// add an else if statement here for builtin pwd command
             else if (strcmp(instructions[0], "pwd") == 0) {
                 builtin_pwd();
-            }
-            else {
+            } else {
                 if (fork() != 0) { // parent
                     wait(NULL); // wait for child
                 } else {
                     strcpy(cmd, "/bin/"); // this is a placeholder. just a proof of concept to see if this thing works.
-                    strcat(cmd, instructions[0]); // instructions[0] will always hold 1st command, ls, pwd, where, cat, etc..
+                    strcat(cmd, instructions[0]); // instr[0] will always hold 1st command, ls, pwd, where, cat, etc..
                     execv(cmd, parameters);  // execute command
 
                 }

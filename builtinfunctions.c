@@ -1,4 +1,5 @@
 #define _GNU_SOURCE
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -15,7 +16,7 @@ void builtin_cd(char *const *instructions) {
             if (home == NULL) {
                 printf("!mysh> HOME environment variable missing\n");
             } else {
-                char newdir[strlen(home) + strlen(dir) - 1];
+                char newdir[strlen(home) + strlen(dir)];
                 sprintf(newdir, "%s%s", home, dir + 1);
                 if (chdir(newdir) != 0) {
                     printf("!mysh> No such file or directory.\n");
@@ -39,7 +40,7 @@ void builtin_cd(char *const *instructions) {
 }
 
 
-void builtin_pwd(){
+void builtin_pwd() {
     char current[2000];
     if (getcwd(current, sizeof(current)) != NULL) {
         printf("%s\n", current);

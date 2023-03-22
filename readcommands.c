@@ -1,4 +1,5 @@
 #define _GNU_SOURCE
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -9,7 +10,8 @@
 #include "header.h"
 
 void
-read_command(char *par[], char *instr[], char *fname, int type, int *tokenIndex, int *filePtrPos, int *filePtrEndPos) {
+read_command(char *par[], char *instr[], char *fname, int type, int *tokenIndex, off_t *filePtrPos,
+             off_t *filePtrEndPos) {
     int fd = STDIN_FILENO;; // if batch is not inuse. fd = 0 (STD_FILENO) will be used from henceforth.
     static char *payload = NULL;
     size_t size; // if a file isn't being used. a placeholder of 5000 bytes will be used for read() buffer.
@@ -43,7 +45,7 @@ read_command(char *par[], char *instr[], char *fname, int type, int *tokenIndex,
     }
 }
 
-void helper_input(int fd, char *payload, int type, char *fname, int *filePtrPos) {
+void helper_input(int fd, char *payload, int type, char *fname, off_t *filePtrPos) {
     ssize_t bytesRead = 0;
     ssize_t totalBytesRead = 0;
     char line[5000];
@@ -73,13 +75,14 @@ void helper_input(int fd, char *payload, int type, char *fname, int *filePtrPos)
     }
 }
 
-void helper_create_tokens(char *par[], char *instr[], char *payload, char *tokens, int *tokenIndex) { // create tokens from the payload
-    tokenIndex[0] = 0;
+void helper_create_tokens(char *par[], char *instr[], char *payload, char *tokens,
+                          int *tokenIndex) { // create tokens from the payload
+    *tokenIndex = 0;
 
     tokens = strtok(payload, " \n"); // create first token.
 
     while (tokens != NULL) {
-        instr[tokenIndex[0]++] = strdup(tokens); // insert token into instructions array
+        instr[(*tokenIndex)++] = strdup(tokens); // insert token into instructions array
         tokens = strtok(NULL, " \n"); // get/create next token.
     }
 
