@@ -41,9 +41,14 @@ int main(int argc, char *argv[]) {
     char **instructions; // the current set of instructions will be held as a series of pointers (AKA our tokens).
 
     while (true) { // repeat forever until user enters "exit" or no instructions are given.
-        cmd = malloc(5000 * sizeof(char));
+        cmd = calloc(5000, sizeof(char));
         instructions = malloc(50 * sizeof(char *));
         parameters = malloc(50 * sizeof(char *));
+
+        for(int i = 0; i < 50; i++){
+            instructions[i] = NULL;
+            parameters[i] = NULL;
+        }
 
         if (type == INTERACTIVE) { // if no file is given. display greeting and "mysh>". else display greeting.
             prompt_interactive();
