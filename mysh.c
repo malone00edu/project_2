@@ -67,6 +67,9 @@ int main(int argc, char *argv[]) {
             if (strcmp(instructions[0], "cd") == 0) {
                 builtin_cd(instructions);
             }// add an else if statement here for builtin pwd command
+            else if (strcmp(instructions[0], "pwd") == 0) {
+                builtin_pwd();
+            }
             else {
                 if (fork() != 0) { // parent
                     wait(NULL); // wait for child
