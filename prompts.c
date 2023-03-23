@@ -14,7 +14,17 @@ void prompt_interactive() {
         write(STDOUT_FILENO, readyBuf, strlen(readyBuf));
         initial = false;
     }
-    char *writeBuf = {"mysh>"};
+
+
+}
+
+void prompt_interactive_normal() {
+    char *writeBuf = {"mysh> "};
+    write(STDOUT_FILENO, writeBuf, strlen(writeBuf));
+}
+
+void prompt_interactive_error() {
+    char *writeBuf = {"!mysh> "};
     write(STDOUT_FILENO, writeBuf, strlen(writeBuf));
 }
 

@@ -42,6 +42,7 @@ void builtin_cd(char *const *instructions) {
 
 void builtin_pwd() {
     char current[2000];
+    memset(current, 0, 2000 * sizeof(char));
     if (getcwd(current, sizeof(current)) != NULL) {
         printf("%s\n", current);
     } else {

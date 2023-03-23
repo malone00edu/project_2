@@ -9,11 +9,11 @@
 #include <sys/fcntl.h>
 #include "header.h"
 
-void
-read_command(char *par[], char *instr[], char *fname, int type, int *tokenIndex, off_t *filePtrPos,
-             off_t *filePtrEndPos) {
+static char *payload = NULL;
+void read_command(char *par[], char *instr[], char *fname, int type, int *tokenIndex,
+                  off_t *filePtrPos, off_t *filePtrEndPos) {
     int fd = STDIN_FILENO;; // if batch is not inuse. fd = 0 (STD_FILENO) will be used from henceforth.
-    static char *payload = NULL;
+
     size_t size; // if a file isn't being used. a placeholder of 5000 bytes will be used for read() buffer.
     char *tokens = NULL;
     static int initialCall = true;
@@ -36,8 +36,8 @@ read_command(char *par[], char *instr[], char *fname, int type, int *tokenIndex,
         initialCall = false;
     }
 
-    helper_input(fd, payload, type, fname, filePtrPos);
-    helper_create_tokens(par, instr, payload, tokens, tokenIndex);
+    helper_input(fd, type, fname, filePtrPos);
+    helper_create_tokens(par, instr, tokens, tokenIndex);
     if (instr[0] != NULL) {
         if (((strcmp(instr[0], "exit")) == 0) | (*filePtrEndPos == *filePtrPos)) {
             free(payload);
@@ -45,7 +45,7 @@ read_command(char *par[], char *instr[], char *fname, int type, int *tokenIndex,
     }
 }
 
-void helper_input(int fd, char *payload, int type, char *fname, off_t *filePtrPos) {
+void helper_input(int fd, int type, char *fname, off_t *filePtrPos) {
     ssize_t bytesRead = 0;
     ssize_t totalBytesRead = 0;
     char line[5000];
@@ -65,7 +65,6 @@ void helper_input(int fd, char *payload, int type, char *fname, off_t *filePtrPo
         totalBytesRead += bytesRead; //tally total number of bytes read before the if statement below forces a break.
         if ((strcmp(&line[totalBytesRead - 1], "\n") == 0) | (bytesRead == 0)) { // use current line (byte data).
             strcpy(payload, line);
-
             if (type == BATCH) {
                 *filePtrPos = lseek(fd, 0, SEEK_CUR); // save the last position of file ptr
                 close(fd);
@@ -75,7 +74,7 @@ void helper_input(int fd, char *payload, int type, char *fname, off_t *filePtrPo
     }
 }
 
-void helper_create_tokens(char *par[], char *instr[], char *payload, char *tokens,
+void helper_create_tokens(char *par[], char *instr[], char *tokens,
                           int *tokenIndex) { // create tokens from the payload
     *tokenIndex = 0;
 
@@ -91,4 +90,8 @@ void helper_create_tokens(char *par[], char *instr[], char *payload, char *token
         par[j] = instr[j];
     }
     par[*tokenIndex] = NULL; // insert NULL into this position. needed for execv().
+}
+
+char *curr_payload(){
+    return payload;
 }
