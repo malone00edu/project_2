@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
+#include <sys/fcntl.h>
 #include "header.h"
 
 void use_fork_basic(char *cmd, char **parameters, char *const *instructions, bool *validExecution) {
@@ -26,10 +27,10 @@ void use_fork_basic(char *cmd, char **parameters, char *const *instructions, boo
     }
 }
 
-void use_fork_adv(char *cmd, char **parameters, char *const *instructions,
-                  char **arrOfDirectories, bool *validExecution) {
+/*void find_path(char *cmd, char **parameters, char *const *instructions, char **arrOfDirectories,
+             bool *validExecution, int *tokenIndex) {
     size_t size = (strlen(arrOfDirectories[0]) + strlen(instructions[0]) + 5);
-    char *location = malloc( size * sizeof(char));
+    char *location = malloc(size * sizeof(char));
     memset(location, 0, size * sizeof(char));
     char *path;
     struct stat stats;
@@ -55,10 +56,50 @@ void use_fork_adv(char *cmd, char **parameters, char *const *instructions,
         free(location);
         return;
     } else {
-        int id = fork();
-        if (id > 0) { // parent
+
+        size_t arrSize = 10;
+        char **arrForPipeRedirect = malloc(arrSize * sizeof(char*));
+        for(int i = 0; i < arrSize; i++){
+            arrForPipeRedirect[i] = NULL;
+        }
+        int countIndex = 0;
+        for (int i = 0; i < *tokenIndex; i++) {
+            if ((strcmp(instructions[i], "<") == 0) | (strcmp(instructions[i], ">") == 0) |
+                (strcmp(instructions[i], "|") == 0)) {
+                arrForPipeRedirect[i] = strdup(instructions[i]);;
+            }
+            countIndex++;
+            if(countIndex >= arrSize){
+                arrSize = arrSize * 2;
+                void *temp = realloc(arrForPipeRedirect, arrSize * sizeof(char*));
+                if (temp == NULL){
+                    errno = ENOMEM;
+                    printf("Error! (%s)\n", strerror(errno));
+                    return;
+                }
+                arrForPipeRedirect = temp;
+            }
+        }
+
+        if (strcmp(instructions[1], "|") == 0) {
+            printf("pipe found\n");
+            return;
+        } else if ((strcmp(instructions[1], "<") == 0) | (strcmp(instructions[1], ">") == 0)) {
+            //printf("redirection found\n");
+            //return;
+            int fd;
+            if (strcmp(instructions[1], "<") == 0) {
+                fd = open(instructions[2], O_RDONLY);
+                if (fd < 0 || instructions[1]) {
+                    printf("Error! (%s)\n", strerror(errno));
+                }
+            }
+        }
+
+        int cpid = fork();
+        if (cpid > 0) { // parent
             wait(NULL); // wait for child
-        } else if (id == 0) {
+        } else if (cpid == 0) {
             strcpy(cmd, path); // ex: /bin/
             strcat(cmd, instructions[0]); // ex: ls
             execv(cmd, parameters);
@@ -72,4 +113,4 @@ void use_fork_adv(char *cmd, char **parameters, char *const *instructions,
     }
     free(path);
     free(location);
-}
+}*/

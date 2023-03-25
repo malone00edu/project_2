@@ -9,12 +9,14 @@
 #include <sys/fcntl.h>
 #include "header.h"
 
-static char *payload = NULL;
+static char *currLine = NULL;
+
 void read_command(char *par[], char *instr[], char *fname, int type, int *tokenIndex,
-                  off_t *filePtrPos, off_t *filePtrEndPos) {
+                  off_t *filePtrPos, const off_t *filePtrEndPos) {
     int fd = STDIN_FILENO;; // if batch is not inuse. fd = 0 (STD_FILENO) will be used from henceforth.
 
     size_t size; // if a file isn't being used. a placeholder of 5000 bytes will be used for read() buffer.
+    char *payload = NULL;
     char *tokens = NULL;
     static int initialCall = true;
     if (initialCall) { // creates payload to store instructions.
@@ -36,8 +38,8 @@ void read_command(char *par[], char *instr[], char *fname, int type, int *tokenI
         initialCall = false;
     }
 
-    helper_input(fd, type, fname, filePtrPos);
-    helper_create_tokens(par, instr, tokens, tokenIndex);
+    helper_input(fd, type, fname, payload, filePtrPos);
+    helper_create_tokens(par, instr, payload, tokens, tokenIndex);
     if (instr[0] != NULL) {
         if (((strcmp(instr[0], "exit")) == 0) | (*filePtrEndPos == *filePtrPos)) {
             free(payload);
@@ -45,11 +47,12 @@ void read_command(char *par[], char *instr[], char *fname, int type, int *tokenI
     }
 }
 
-void helper_input(int fd, int type, char *fname, off_t *filePtrPos) {
+void helper_input(int fd, int type, char *fname, char *payload, off_t *filePtrPos) {
     ssize_t bytesRead = 0;
     ssize_t totalBytesRead = 0;
     char line[5000];
     memset(line, 0, 5000 * sizeof(char)); // clear array of garbage data.
+    currLine = malloc(1 * sizeof(char*));
 
     if (type == BATCH) { // if file exists, will continue to read where pointer (filePointerPos) previously left off.
         fd = open(fname, O_RDONLY);
@@ -65,6 +68,7 @@ void helper_input(int fd, int type, char *fname, off_t *filePtrPos) {
         totalBytesRead += bytesRead; //tally total number of bytes read before the if statement below forces a break.
         if ((strcmp(&line[totalBytesRead - 1], "\n") == 0) | (bytesRead == 0)) { // use current line (byte data).
             strcpy(payload, line);
+            currLine = strdup(payload);
             if (type == BATCH) {
                 *filePtrPos = lseek(fd, 0, SEEK_CUR); // save the last position of file ptr
                 close(fd);
@@ -74,8 +78,7 @@ void helper_input(int fd, int type, char *fname, off_t *filePtrPos) {
     }
 }
 
-void helper_create_tokens(char *par[], char *instr[], char *tokens,
-                          int *tokenIndex) { // create tokens from the payload
+void helper_create_tokens(char *par[], char *instr[], char *payload, char *tokens, int *tokenIndex) { // create tokens from the payload
     *tokenIndex = 0;
 
     tokens = strtok(payload, " \n"); // create first token.
@@ -85,13 +88,12 @@ void helper_create_tokens(char *par[], char *instr[], char *tokens,
         tokens = strtok(NULL, " \n"); // get/create next token.
     }
 
-
     for (int j = 0; j < *tokenIndex; j++) { // create parameters from instructions. needed for execv().
         par[j] = instr[j];
     }
     par[*tokenIndex] = NULL; // insert NULL into this position. needed for execv().
 }
 
-char *curr_payload(){
-    return payload;
+char *curr_line() {
+    return currLine;
 }

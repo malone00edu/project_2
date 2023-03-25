@@ -14,17 +14,20 @@ void builtin_pwd();
 
 void use_fork_basic(char *cmd, char **parameters, char *const *instructions, bool *validExecution);
 
-void use_fork_adv(char *cmd, char **parameters, char *const *instructions, char **arrOfDirectories, bool *validExecution);
+void fork_adv(char **instructions, bool *validExecution, int *tokenIndex);
+
+void
+find_path(char **instr, bool *validExecution, int *tokenIndex);
 
 void
 read_command(char *par[], char *instr[], char *fname, int type, int *tokenIndex, off_t *filePtrPos,
-             off_t *filePtrEndPos);
+             const off_t *filePtrEndPos);
 
-void helper_input(int fd, int type, char *fname, off_t *filePtrPos);
+void helper_input(int fd, int type, char *fname, char *payload, off_t *filePtrPos);
 
-void helper_create_tokens(char *par[], char *instr[], char *tokens, int *tokenIndex);
+void helper_create_tokens(char *par[], char *instr[], char *payload, char *tokens, int *tokenIndex);
 
-char *curr_payload();
+char *curr_line();
 
 void free_pointers(char *cmd, char **parameters, char **instructions, int *tokenIndex);
 
