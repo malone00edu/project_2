@@ -75,6 +75,7 @@
 //so everythign works properly. I can use both of them together like ls *.c > newfile.txt
 //only problem I can't seem to figure out atm is that every time i use the redirect like cat one > two,
 //it gives an error, but the code works, you can cat two and see that it works. don't know why the error msg is popping up tho
+
 else {
     int pid = fork();
     if (pid == 0) { // child process
@@ -121,7 +122,7 @@ else {
                 glob(instructions[i], GLOB_NOCHECK | GLOB_TILDE, NULL, &paths);
                 count += paths.gl_pathc;
                 globfree(&paths);
-            } else {
+            } else if (strcmp(instructions[i], "<") != 0 && strcmp(instructions[i], ">") != 0) {
                 count++;
             }
         }
@@ -137,8 +138,8 @@ else {
                     argmt[arI++] = strdup(paths.gl_pathv[j]);
                 }
                 globfree(&paths);
-            } else {
-                argmt[arI++] = strdup(instructions[i]);
+            }else if (strcmp(instructions[i], "<") != 0 && strcmp(instructions[i], ">") != 0) {
+        argmt[arI++] = strdup(instructions[i]);
             }
         }
 
@@ -156,6 +157,7 @@ else {
         exit(1);
     }
 }
+
 
    
         
