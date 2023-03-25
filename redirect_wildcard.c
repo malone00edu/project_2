@@ -15,61 +15,56 @@
 
 ////////////    /* redirections (by itself code)*/////////////////
 
-        else {
-            
-            
-            int pid = fork();
-            if (pid == 0) { // child process
-            // check if input or output redirection is needed
-            int indirect = 0;
-            int outdirect = 0;
-            int din=0;
-            int dout;
-            for (int i = 0; parameters[i] != NULL; i++) {
-                if (strcmp(parameters[i], "<") == 0) {
-                    indirect = i + 1;
-                } else if (strcmp(parameters[i], ">") == 0) {
-                    outdirect = i + 1;
-                }
-            }
-
-            // execute command with input/output redirection
-            if (indirect) {
-                din = open(parameters[indirect], O_RDONLY);
-                if (din == -1) {
-                    perror("open");
-                    exit(1);
-                
-                    dup2(din, STDIN_FILENO);
-                    close(din);
-                    parameters[indirect-1] = NULL;
-                }
-                if (outdirect) {
-                    dout = open(parameters[outdirect], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP);
-                    if (dout == -1) {
-                        perror("open");
-                        exit(1);
-                    }
-                        dup2(dout, STDOUT_FILENO);
-                        close(dout);
-                        parameters[outdirect-1] = NULL;
-                }
-
-                strcpy(cmd, "/bin/");
-                strcat(cmd, instructions[0]);
-                execv(cmd, parameters);
-                perror("execv"); // should never reach here
-                exit(1);
-                } 
-                else if (pid > 0) { // parent process
-                    wait(NULL);
-                } else { // fork() failed
-                    perror("fork");
-                    exit(1);
-                }
-
+    else {
+    int pid = fork();
+    if (pid == 0) { // child process
+        // check if input or output redirection is needed
+        int indirect = 0;
+        int outdirect = 0;
+        int din = 0;
+        int dout = 0;
+        for (int i = 0; parameters[i] != NULL; i++) {
+            if (strcmp(parameters[i], "<") == 0) {
+                indirect = i + 1;
+            } else if (strcmp(parameters[i], ">") == 0) {
+                outdirect = i + 1;
             }
         }
+
+        // execute command with input/output redirection
+        if (indirect) {
+            din = open(parameters[indirect], O_RDONLY);
+            if (din == -1) {
+                perror("open");
+                exit(1);
+            }
+            dup2(din, STDIN_FILENO);
+            close(din);
+            parameters[indirect - 1] = NULL;
+        }
+        if (outdirect) {
+            dout = open(parameters[outdirect], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP);
+            if (dout == -1) {
+                perror("open");
+                exit(1);
+            }
+            dup2(dout, STDOUT_FILENO);
+            close(dout);
+            parameters[outdirect - 1] = NULL;
+        }
+
+        strcpy(cmd, "/bin/");
+        strcat(cmd, instructions[0]);
+        execv(cmd, parameters);
+        perror("execv"); // should never reach here
+        exit(1);
+    } else if (pid > 0) { // parent process
+        wait(NULL);
+    } else { // fork() failed
+        perror("fork failed");
+        exit(1);
+    }
+}
 
 ////////////////wildcard and redirect together///////////////
 //so everythign works properly. I can use both of them together like ls *.c > newfile.txt
