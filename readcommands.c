@@ -16,7 +16,7 @@ void read_command(char *par[], char *instr[], char *fname, int type, int *tokenI
     int fd = STDIN_FILENO;; // if batch is not inuse. fd = 0 (STD_FILENO) will be used from henceforth.
 
     size_t size; // if a file isn't being used. a placeholder of 5000 bytes will be used for read() buffer.
-    char *payload = NULL;
+    static char *payload;
     char *tokens = NULL;
     static int initialCall = true;
     if (initialCall) { // creates payload to store instructions.
@@ -52,7 +52,6 @@ void helper_input(int fd, int type, char *fname, char *payload, off_t *filePtrPo
     ssize_t totalBytesRead = 0;
     char line[5000];
     memset(line, 0, 5000 * sizeof(char)); // clear array of garbage data.
-    currLine = malloc(1 * sizeof(char*));
 
     if (type == BATCH) { // if file exists, will continue to read where pointer (filePointerPos) previously left off.
         fd = open(fname, O_RDONLY);
@@ -68,7 +67,6 @@ void helper_input(int fd, int type, char *fname, char *payload, off_t *filePtrPo
         totalBytesRead += bytesRead; //tally total number of bytes read before the if statement below forces a break.
         if ((strcmp(&line[totalBytesRead - 1], "\n") == 0) | (bytesRead == 0)) { // use current line (byte data).
             strcpy(payload, line);
-            currLine = strdup(payload);
             if (type == BATCH) {
                 *filePtrPos = lseek(fd, 0, SEEK_CUR); // save the last position of file ptr
                 close(fd);
@@ -80,7 +78,6 @@ void helper_input(int fd, int type, char *fname, char *payload, off_t *filePtrPo
 
 void helper_create_tokens(char *par[], char *instr[], char *payload, char *tokens, int *tokenIndex) { // create tokens from the payload
     *tokenIndex = 0;
-
     tokens = strtok(payload, " \n"); // create first token.
 
     while (tokens != NULL) {
@@ -92,8 +89,4 @@ void helper_create_tokens(char *par[], char *instr[], char *payload, char *token
         par[j] = instr[j];
     }
     par[*tokenIndex] = NULL; // insert NULL into this position. needed for execv().
-}
-
-char *curr_line() {
-    return currLine;
 }
