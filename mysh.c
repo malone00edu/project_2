@@ -202,7 +202,7 @@ void chk_for_redirect(const int *tokenIndex, char *cmd, char *const *instruction
                 strcat(cmd, &parameters[pipeIndex+1][0]);
                 execv(cmd, &parameters[pipeIndex+1]);
 
-                // should never reach here
+ 
                 perror("execv");
                 exit(1);
             } else if (pid2 > 0) {
@@ -218,7 +218,7 @@ void chk_for_redirect(const int *tokenIndex, char *cmd, char *const *instruction
                 strcat(cmd, &parameters[0][0]);
                 execv(cmd, parameters);
 
-                // should never reach here
+         
                 perror("execv");
                 exit(1);
             } else {
