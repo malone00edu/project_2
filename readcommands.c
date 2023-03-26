@@ -9,8 +9,6 @@
 #include <sys/fcntl.h>
 #include "header.h"
 
-static char *currLine = NULL;
-
 void read_command(char *par[], char *instr[], char *fname, int type, int *tokenIndex,
                   off_t *filePtrPos, const off_t *filePtrEndPos) {
     int fd = STDIN_FILENO;; // if batch is not inuse. fd = 0 (STD_FILENO) will be used from henceforth.
