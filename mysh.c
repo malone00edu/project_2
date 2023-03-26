@@ -1,7 +1,9 @@
 #define _GNU_SOURCE
 
 void chk_for_wildcards(const int *tokenIndex, char *cmd, char *const *instructions);
+void chk_for_redirect(const int *tokenIndex, char *cmd, char *const *instructions, char **parameters);
 
+#include <stdio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -90,10 +92,10 @@ int main(int argc, char *argv[]) {
             } else if (strchr(instructions[0], '/') != NULL) {
                 use_fork_basic(cmd, parameters, instructions, validExecution);
             } else {
-                fork_adv(instructions, validExecution, tokenIndex); // else no path given.
-
+               // fork_adv(instructions, validExecution, tokenIndex); // else no path given.
+                chk_for_redirect(tokenIndex,cmd, instructions,parameters);
                 /*char **args; int arg_index=0; expand_instr(instructions, &args, arg_index); */
-
+                
                 //checks for wildcards - expand the arguments using glob
                 //chk_for_wildcards(tokenIndex, cmd, instructions);
 
@@ -156,6 +158,113 @@ void chk_for_wildcards(const int *tokenIndex, char *cmd, char *const *instructio
 
     free(args);
 }
+
+//*checks for redirects OR pipes NOT BOTH!
+void chk_for_redirect(const int *tokenIndex, char *cmd, char *const *instructions, char **parameters){
+    int pid = fork();
+    if (pid == 0) { // child process
+        // check if input or output redirection is needed
+        int indirect = 0;
+        int outdirect = 0;
+        int din = 0;
+        int dout = 0;
+        int pipefd[2] = {-1, -1}; // initialize pipe file descriptors
+        int pipeIndex = 0; // initialize pipe index
+        for (int i = 0; parameters[i] != NULL; i++) {
+            if (strcmp(parameters[i], "<") == 0) {
+                indirect = i + 1;
+            } else if (strcmp(parameters[i], ">") == 0) {
+                outdirect = i + 1;
+            } else if (strcmp(parameters[i], "|") == 0) {
+                pipeIndex = i;
+            }
+        }
+
+        // execute command with input/output redirection and/or pipes
+        if (pipeIndex) {
+            // create pipe
+            if (pipe(pipefd) == -1) {
+                perror("pipe");
+                exit(1);
+            }
+
+            // fork another process to execute the command after the pipe
+            int pid2 = fork();
+            if (pid2 == 0) {
+                // close read end of the pipe
+                close(pipefd[1]);
+
+                // set the input file descriptor to the read end of the pipe
+                dup2(pipefd[0], STDIN_FILENO);
+
+                // execute the command after the pipe
+                strcpy(cmd, "/bin/");
+                strcat(cmd, &parameters[pipeIndex+1][0]);
+                execv(cmd, &parameters[pipeIndex+1]);
+
+                // should never reach here
+                perror("execv");
+                exit(1);
+            } else if (pid2 > 0) {
+                // close write end of the pipe
+                close(pipefd[0]);
+
+                // set the output file descriptor to the write end of the pipe
+                dup2(pipefd[1], STDOUT_FILENO);
+
+                // execute the command before the pipe
+                parameters[pipeIndex] = NULL;
+                strcpy(cmd, "/bin/");
+                strcat(cmd, &parameters[0][0]);
+                execv(cmd, parameters);
+
+                // should never reach here
+                perror("execv");
+                exit(1);
+            } else {
+                // fork() failed
+                perror("fork failed");
+                exit(1);
+            }
+        } else {
+            if (indirect) {
+                din = open(parameters[indirect], O_RDONLY);
+                if (din == -1) {
+                    perror("open");
+                    exit(1);
+                }
+                dup2(din, STDIN_FILENO);
+                close(din);
+                parameters[indirect - 1] = NULL;
+            }
+            if (outdirect) {
+                dout = open(parameters[outdirect], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP);
+                if (dout == -1) {
+                    perror("open");
+                    exit(1);
+                }
+                dup2(dout, STDOUT_FILENO);
+                close(dout);
+                parameters[outdirect - 1] = NULL;
+            }
+            strcpy(cmd, "/bin/");
+            strcat(cmd, instructions[0]);
+            execv(cmd, parameters);
+            perror("execv"); // should never reach here
+            exit(1);
+        }
+    } else if (pid > 0) { // parent process
+        wait(NULL);
+    } else { // fork() failed
+        perror("fork failed");
+        exit(1);
+    }
+
+}
+
+
+
+
 
 
 
