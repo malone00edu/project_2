@@ -17,7 +17,7 @@ void use_fork_basic(char *cmd, char **parameters, char *const *instructions, boo
 void fork_adv(char **instructions, bool *validExecution, int *tokenIndex);
 
 void
-find_path(char **instr, bool *validExecution, int *tokenIndex);
+find_path(char **instr, bool *validExecution);
 
 void
 read_command(char *par[], char *instr[], char *fname, int type, int *tokenIndex, off_t *filePtrPos,

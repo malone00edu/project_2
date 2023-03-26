@@ -10,7 +10,11 @@
 #include <sys/fcntl.h>
 #include "header.h"
 
-void find_path(char **instr, bool *validExecution, int *tokenIndex) {
+void is_indirect(char ***arrForPipeRedirect, int iRow, int indirect, int din, bool *validExecution);
+
+void is_outdirect(char ***arrForPipeRedirect, int iRow, int outdirect, int dout, bool *validExecution);
+
+void find_path(char **instr, bool *validExecution) {
 
     char *arrOfDirectories[6];
     arrOfDirectories[0] = "/usr/local/sbin", arrOfDirectories[1] = "/usr/local/bin",
@@ -46,9 +50,9 @@ void find_path(char **instr, bool *validExecution, int *tokenIndex) {
 }
 
 void fork_adv(char **instructions, bool *validExecution, int *tokenIndex) {
-    char ***arrForPipeRedirect = NULL; // 2D Array
+
+    char ***pipeRedirectCommands = NULL; // 2D Array
     size_t symbolsFound = 0;
-    //size_t pipeSymbolPos = 0;
     size_t commandsAndParameters = 0;
     bool pipeSymbolFound = false;
     bool redirectSymbolFound = false;
@@ -60,27 +64,25 @@ void fork_adv(char **instructions, bool *validExecution, int *tokenIndex) {
         }
         if ((strcmp(instructions[i], "|") == 0)) {
             pipeSymbolFound = true;
-            //pipeSymbolPos = i;
             symbolsFound++;
         }
     }
 
     if (redirectSymbolFound | pipeSymbolFound) {
-         commandsAndParameters = *tokenIndex - symbolsFound;
-        arrForPipeRedirect = malloc((symbolsFound + 1) * sizeof(char **)); // Rows
+        commandsAndParameters = *tokenIndex - symbolsFound;
+        pipeRedirectCommands = malloc((symbolsFound + 1) * sizeof(char **)); // create rows
         for (int i = 0; i < symbolsFound + 1; i++) {
-            arrForPipeRedirect[i] = NULL;
+            pipeRedirectCommands[i] = NULL;
         }
         for (int i = 0; i < symbolsFound + 1; i++) {
-            arrForPipeRedirect[i] = calloc(commandsAndParameters, sizeof(char *)); // Columns
+            pipeRedirectCommands[i] = calloc(commandsAndParameters, sizeof(char *)); // create columns
         }
         int index = 0;
         int rowPos = 0;
         int colPos = 0;
-        while (index < *tokenIndex) { // Filling out a 2D array. Breaks to next row when "<", ">", or "|" is found.
+        while (index < *tokenIndex) { // Filling out a 2D array. Advances to next row when "|" is found.
             if (strcmp(instructions[index], "|") != 0) {
-                arrForPipeRedirect[rowPos][colPos] = strdup(instructions[index]);
-                //printf("%s\n", arrForPipeRedirect[rowPos][colPos]);
+                pipeRedirectCommands[rowPos][colPos] = strdup(instructions[index]);
                 colPos++;
             } else {
                 rowPos++;
@@ -88,79 +90,145 @@ void fork_adv(char **instructions, bool *validExecution, int *tokenIndex) {
             }
             index++;
         }
-    }
 
-    /*
-     * 2D Array example for "ls -1 | wc -l"
-     *
-     *    0: 1: 2:
-     * 0: ls -1
-     * 1: wc -l
-     * 2:
-     *
-     *
-     * */
 
-    //char *arr1[] = {"ls", "-1", NULL};
-    //char *arr2[] = {"wc", "-l", NULL};
-    find_path(arrForPipeRedirect[0], validExecution, tokenIndex);
-    find_path(arrForPipeRedirect[1], validExecution, tokenIndex);
-    //printf("%s\n", arrForPipeRedirect[0][0]);
-    //printf("%s\n", arrForPipeRedirect[1][0]);
-    //return;
+        /*
+         * 2D Array example for "ls -1 | wc -l"
+         *
+         *    0: 1: 2:
+         * 0: ls -1
+         * 1: wc -l
+         * 2:
+         *
+         *
+         * */
 
-    char *cmd1, *cmd2;
-    char *parm1, *parm2;
-    int fd[2];
-    pid_t pid;
+        /*
+         * 2D Array example for "ls -1 | wc -l > out.txt"
+         *
+         *    0: 1: 2:
+         * 0: ls -1
+         * 1: wc -l > out.txt
+         * 2:
+         *
+         *
+         * */
 
-    if (pipe(fd) == -1) {
-        perror("pipe");
-        exit(EXIT_FAILURE);
-    }
-    pid = fork();
+        find_path(pipeRedirectCommands[0], validExecution);
+        find_path(pipeRedirectCommands[1], validExecution);
 
-    if (pid == -1) {
-        perror("fork");
-        exit(EXIT_FAILURE);
-    } else if (pid == 0) {
+        int indirect = 0;
+        int outdirect = 0;
+        int din = 0;
+        int dout = 0;
+        for (int iRow = 0; iRow < symbolsFound + 1; iRow++) {
+            for (int iCol = 0; iCol < commandsAndParameters; iCol++) {
+                if (pipeRedirectCommands[iRow][iCol] != NULL) {
+                    if (strcmp(pipeRedirectCommands[iRow][iCol], "<") == 0) {
+                        indirect = iCol + 1;
+                        if (indirect) {
+                            // your indirect is called. see end of this file
+                            is_indirect(pipeRedirectCommands, iRow, indirect, din, NULL);
+                        }
+                    } else if (strcmp(pipeRedirectCommands[iRow][iCol], ">") == 0) {
+                        outdirect = iCol + 1;
+                        if (outdirect) {
+                            // your outdirect is called. see end of this file
+                            is_outdirect(pipeRedirectCommands, iRow, outdirect, dout, NULL);
+                        }
+                    }
+                }
+            }
+        }
+
+        int fd[2];
+        errno = 0;
+        if (pipe(fd) == -1) { // create pipe
+            printf("Pipe() failure! (%s)\n", strerror(errno));
+            *validExecution = false;
+            //return;
+        }
+        pid_t pid1 = fork();
+        if (pid1 == -1) { // create fork
+            printf("Fork() failure! (%s)\n", strerror(errno));
+            *validExecution = false;
+        } else if (pid1 == 0) { // child 1
+            dup2(fd[1], STDOUT_FILENO);
+            close(fd[0]);
+            close(fd[1]);
+            execv(pipeRedirectCommands[0][0], pipeRedirectCommands[0]);
+
+            if (errno != 0) {
+                printf("Failed to execute command! (%s)\n", strerror(errno));
+                *validExecution = false;
+                // return;
+            }
+        }
+
+        pid_t pid2 = fork();
+        if (pid2 == -1) {
+            printf("Fork() failure! (%s)\n", strerror(errno));
+            *validExecution = false;
+        } else if (pid2 == 0) {
+            dup2(fd[0], STDIN_FILENO);
+            close(fd[1]);
+            close(fd[0]);
+            execv(pipeRedirectCommands[1][0], pipeRedirectCommands[1]);
+
+            if (errno != 0) {
+                printf("Failed to execute command! (%s)\n", strerror(errno));
+                *validExecution = false;
+                //return;
+            }
+        }
         close(fd[0]);
-        dup2(fd[1], STDOUT_FILENO);
         close(fd[1]);
-        execv(arrForPipeRedirect[0][0], arrForPipeRedirect[0]);
-        perror("execv");
-        exit(EXIT_FAILURE);
+        wait(0);
+        wait(0);
+
     } else {
-        wait(NULL);
-        close(fd[1]);
-        dup2(fd[0], STDIN_FILENO);
-        close((fd[0]));
-        execv(arrForPipeRedirect[1][0], arrForPipeRedirect[1]);
-        perror("execv");
-        exit(EXIT_FAILURE);
+
+        find_path(instructions, validExecution);
+
+        char *cmd = NULL;
+        int cpid = fork();
+        if (cpid > 0) { // parent
+            wait(NULL); // wait for child
+        } else if (cpid == 0) {
+            cmd = strdup(instructions[0]); // ex: /bin/
+            execv(cmd, instructions);
+            if (errno != 0) {
+                printf("Failed to execute command! (%s)\n", strerror(errno));
+                *validExecution = false;
+            }
+            free(cmd);
+        } else {
+            printf("Failed to create a child process! (%s)\n", strerror(errno));
+        }
     }
 }
 
-/*if (strchr(curr_line(), '|') == 0) {
-    return;
-} else if ((strcmp(instructions[1], "<") == 0) | (strcmp(instructions[1], ">") == 0)) {
-}*/
 
-/*int cpid = fork();
-if (cpid > 0) { // parent
-    wait(NULL); // wait for child
-} else if (cpid == 0) {
-    strcpy(cmd, path); // ex: /bin/
-    strcat(cmd, instructions[0]); // ex: ls
-    execv(cmd, parameters);
-    if (errno != 0) {
-        printf("Failed to execute command! (%s)\n", strerror(errno));
+void is_indirect(char ***arrForPipeRedirect, int iRow, int indirect, int din, bool *validExecution) {
+    din = open(arrForPipeRedirect[iRow][indirect], O_RDONLY);
+    if (din == -1) {
+        printf("Failed to open file! (%s)\n", strerror(errno));
         *validExecution = false;
+        //return;
     }
-} else {
-    printf("Failed to create a child process! (%s)\n", strerror(errno));
+    dup2(din, STDIN_FILENO);
+    close(din);
+    arrForPipeRedirect[iRow][indirect - 1] = NULL;
 }
+
+void is_outdirect(char ***arrForPipeRedirect, int iRow, int outdirect, int dout, bool *validExecution) {
+    dout = open(arrForPipeRedirect[iRow][outdirect], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP);
+    if (dout == -1) {
+        printf("Failed to to open file! (%s)\n", strerror(errno));
+        *validExecution = false;
+        //return;
+    }
+    dup2(dout, STDOUT_FILENO);
+    close(dout);
+    arrForPipeRedirect[iRow][outdirect - 1] = NULL;
 }
-free(path);
-free(location);
-}*/
