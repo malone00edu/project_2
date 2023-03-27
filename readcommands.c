@@ -1,12 +1,5 @@
 #define _GNU_SOURCE
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <stdbool.h>
-#include <sys/fcntl.h>
 #include "header.h"
 
 void read_command(char *par[], char *instr[], char *fname, int type, int *tokenIndex,
@@ -74,7 +67,8 @@ void helper_input(int fd, int type, char *fname, char *payload, off_t *filePtrPo
     }
 }
 
-void helper_create_tokens(char *par[], char *instr[], char *payload, char *tokens, int *tokenIndex) { // create tokens from the payload
+void helper_create_tokens(char *par[], char *instr[], char *payload, char *tokens,
+                          int *tokenIndex) { // create tokens from the payload
     *tokenIndex = 0;
     tokens = strtok(payload, " \n"); // create first token.
 

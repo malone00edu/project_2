@@ -1,9 +1,5 @@
 #define _GNU_SOURCE
 
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdbool.h>
 #include "header.h"
 
 void prompt_interactive() {
@@ -14,8 +10,6 @@ void prompt_interactive() {
         write(STDOUT_FILENO, readyBuf, strlen(readyBuf));
         initial = false;
     }
-
-
 }
 
 void prompt_interactive_normal() {

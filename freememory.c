@@ -1,6 +1,5 @@
 #define _GNU_SOURCE
 
-#include <stdlib.h>
 #include "header.h"
 
 void free_pointers(char *cmd, char **parameters, char **instructions,

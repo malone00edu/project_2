@@ -1,20 +1,10 @@
 #define _GNU_SOURCE
 
 void chk_for_wildcards(const int *tokenIndex, char *cmd, char *const *instructions);
+
 void chk_for_redirect(const int *tokenIndex, char *cmd, char *const *instructions, char **parameters);
 
-#include <stdio.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
-#include <glob.h>
-#include <sys/wait.h>
-#include <sys/fcntl.h>
 #include "header.h"
-#include <dirent.h>
-
 
 
 int main(int argc, char *argv[]) {
@@ -89,13 +79,11 @@ int main(int argc, char *argv[]) {
                 builtin_cd(instructions);
             } else if (strcmp(instructions[0], "pwd") == 0) {
                 builtin_pwd();
-            } else if (strchr(instructions[0], '/') != NULL) {
-                use_fork_basic(cmd, parameters, instructions, validExecution);
             } else {
-               // fork_adv(instructions, validExecution, tokenIndex); // else no path given.
-                chk_for_redirect(tokenIndex,cmd, instructions,parameters);
+                execute_pipe_redirect(instructions, tokenIndex, validExecution); // else no path given.
+                //chk_for_redirect(tokenIndex,cmd, instructions,parameters);
                 /*char **args; int arg_index=0; expand_instr(instructions, &args, arg_index); */
-                
+
                 //checks for wildcards - expand the arguments using glob
                 //chk_for_wildcards(tokenIndex, cmd, instructions);
 
@@ -160,7 +148,7 @@ void chk_for_wildcards(const int *tokenIndex, char *cmd, char *const *instructio
 }
 
 //*checks for redirects OR pipes NOT BOTH!
-void chk_for_redirect(const int *tokenIndex, char *cmd, char *const *instructions, char **parameters){
+void chk_for_redirect(const int *tokenIndex, char *cmd, char *const *instructions, char **parameters) {
     int pid = fork();
     if (pid == 0) { // child process
         // check if input or output redirection is needed
@@ -199,10 +187,10 @@ void chk_for_redirect(const int *tokenIndex, char *cmd, char *const *instruction
 
                 // execute the command after the pipe
                 strcpy(cmd, "/bin/");
-                strcat(cmd, &parameters[pipeIndex+1][0]);
-                execv(cmd, &parameters[pipeIndex+1]);
+                strcat(cmd, &parameters[pipeIndex + 1][0]);
+                execv(cmd, &parameters[pipeIndex + 1]);
 
- 
+
                 perror("execv");
                 exit(1);
             } else if (pid2 > 0) {
@@ -218,7 +206,7 @@ void chk_for_redirect(const int *tokenIndex, char *cmd, char *const *instruction
                 strcat(cmd, &parameters[0][0]);
                 execv(cmd, parameters);
 
-         
+
                 perror("execv");
                 exit(1);
             } else {
