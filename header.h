@@ -32,7 +32,9 @@ void use_redirection(bool *validExecution, char ***arguments, size_t symbolsFoun
 void create_2d_array(char *const *instructions, const int *tokenIndex, bool *validExecution, size_t symbolsFound,
                      char ****arguments, char **cmd1, char **cmd2);
 
-void execute_pipe_redirect(char **instructions, int *tokenIndex, bool *validExecution);
+void check_for_wildcard(char *const *instructions, char ****arguments, int index, int rowPos, int colPos);
+
+void execute(char **instructions, int *tokenIndex, bool *validExecution);
 
 void
 read_command(char *par[], char *instr[], char *fname, int type, int *tokenIndex, off_t *filePtrPos,

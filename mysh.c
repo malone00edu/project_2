@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
             } else if (strcmp(instructions[0], "pwd") == 0) {
                 builtin_pwd();
             } else {
-                execute_pipe_redirect(instructions, tokenIndex, validExecution); // else no path given.
+                execute(instructions, tokenIndex, validExecution); // else no path given.
                 //chk_for_redirect(tokenIndex,cmd, instructions,parameters);
                 /*char **args; int arg_index=0; expand_instr(instructions, &args, arg_index); */
 
