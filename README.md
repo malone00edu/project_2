@@ -58,26 +58,16 @@ There is a file call 'myscript.txt' that contain some basic commands such as ls,
 
 After calling make, type ./mysh to run the program.
 
-///USE THESE COMMANDS TO TEST///
-
-Testing built in cmds: <br />
+**///USE THESE COMMANDS TO TEST///** <br />
 pwd <br />
 cd ../     (to test if the home extension work just cd with no arguments and ls)  <br />
-
-Testing cmds <br />
 ls <br />
 cd  <br />
 cat mysh.c <br />
-
-Testing wildcards <br />
 ls *.c <br />
 ls m*h.c  <br />
-
-testing redirections <br />
 ls > redirec.txt <br />
 cat < redirec.txt > redirec2.txt  <br />
-
-testing pipes <br />
 ls | sort <br />
 ls -l | wc <br />
 
