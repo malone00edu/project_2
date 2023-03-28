@@ -1,5 +1,7 @@
 #define _GNU_SOURCE
 
+void seek_wildcard(char **instructions);
+
 #include "header.h"
 
 void execute_pipe_redirect(char **instructions, int *tokenIndex, bool *validExecution) {
@@ -25,7 +27,7 @@ void execute_pipe_redirect(char **instructions, int *tokenIndex, bool *validExec
             symbolsFound++;
         }
     }
-
+    seek_wildcard(instructions);
     create_2d_array(instructions, tokenIndex, validExecution, symbolsFound, &arguments, &cmd1, &cmd2);
 
     /*
@@ -131,6 +133,20 @@ void execute_pipe_redirect(char **instructions, int *tokenIndex, bool *validExec
     }
 }
 
+void seek_wildcard(char **instructions) {
+    for (int i = 0; instructions[i] != NULL; i++) {
+        if (strchr(instructions[i], '*') != NULL) {
+            glob_t paths;
+            glob(instructions[i], GLOB_NOCHECK | GLOB_TILDE, NULL, &paths);
+            for (int j = 0; j < paths.gl_pathc; j++) {
+                free(instructions[i]);
+                instructions[i] = strdup(paths.gl_pathv[j]);
+            }
+            globfree(&paths);
+        }
+    }
+}
+
 void find_path(char **cmd, bool *validExecution) {
 
     char *arrOfDirectories[6];
@@ -229,6 +245,7 @@ void use_redirection(bool *validExecution, char ***arguments, size_t symbolsFoun
 }
 
 void is_indirect(char ***arguments, int iRow, int indirect, int din, bool *validExecution) {
+    //seek_wildcard(instructions);
     din = open(arguments[iRow][indirect], O_RDONLY);
     if (din == -1) {
         printf("Failed to open file! (%s)\n", strerror(errno));
@@ -241,6 +258,7 @@ void is_indirect(char ***arguments, int iRow, int indirect, int din, bool *valid
 }
 
 void is_outdirect(char ***arguments, int iRow, int outdirect, int dout, bool *validExecution) {
+    //seek_wildcard(instructions);
     dout = open(arguments[iRow][outdirect], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP);
     if (dout == -1) {
         printf("Failed to to open file! (%s)\n", strerror(errno));
@@ -251,3 +269,5 @@ void is_outdirect(char ***arguments, int iRow, int outdirect, int dout, bool *va
     close(dout);
     arguments[iRow][outdirect - 1] = NULL;
 }
+
+
