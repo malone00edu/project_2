@@ -23,6 +23,7 @@ In interactive mode, the shell takes input commands from the user through the st
 
 
 /* Wildcards: */
+
 The program uses the glob() function to expand wildcard patterns in command arguments. When a wildcard pattern is detected, it calls glob() to generate a list of filenames matching the pattern, and replaces the wildcard argument with the list of filenames.
 
 
@@ -58,6 +59,7 @@ There is a file call 'myscript.txt' that contain some basic commands such as ls,
 After calling make, type ./mysh to run the program.
 
 ///USE THESE COMMANDS TO TEST///
+
 Testing built in cmds:
 pwd
 cd ../     (to test if the home extension work just cd with no arguments and ls)
