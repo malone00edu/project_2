@@ -46,4 +46,7 @@ The builtin_cd function checks if a directory argument is given. If yes, chdir()
 
 **TESTING**
 
-To see if batchmode is working: 
+First compile the files calling 'make' in linux terminal, and then /mysh to run the program.
+
+/* To see if batchmode is working: */
+
