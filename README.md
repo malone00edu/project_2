@@ -48,5 +48,39 @@ The builtin_cd function checks if a directory argument is given. If yes, chdir()
 
 First compile the files calling 'make' in linux terminal, and then /mysh to run the program.
 
-/* To see if batchmode is working: */
+/* BATCHMODE: */
+
+There is a file call 'myscript.txt' that contain some basic commands such as ls, wildcards, redirections, pipes. Simply type ' ./mysh myscrip.txt ' to test batch mode.
+
+
+/* INTERACTIVE: */
+
+After calling make, type ./mysh to run the program.
+
+///USE THESE COMMANDS TO TEST///
+Testing built in cmds:
+pwd
+cd ../     (to test if the home extension work just cd with no arguments and ls)
+
+Testing cmds
+ls
+cd 
+cat mysh.c
+
+Testing wildcards
+ls *.c
+ls m*h.c
+
+testing redirections
+ls > redirec.txt
+cat < redirec.txt > redirec2.txt
+
+testing pipes
+ls | sort
+ls -l | wc
+
+
+
+
+
 
