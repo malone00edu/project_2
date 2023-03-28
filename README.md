@@ -60,35 +60,26 @@ After calling make, type ./mysh to run the program.
 
 ///USE THESE COMMANDS TO TEST///
 
-Testing built in cmds:
-pwd
-cd ../     (to test if the home extension work just cd with no arguments and ls)
+Testing built in cmds: <br />
+pwd <br />
+cd ../     (to test if the home extension work just cd with no arguments and ls)  <br />
 
-Testing cmds
+Testing cmds <br />
+ls <br />
+cd  <br />
+cat mysh.c <br />
 
-ls
+Testing wildcards <br />
+ls *.c <br />
+ls m*h.c  <br />
 
-cd 
+testing redirections <br />
+ls > redirec.txt <br />
+cat < redirec.txt > redirec2.txt  <br />
 
-cat mysh.c
-
-Testing wildcards
-
-ls *.c
-
-ls m*h.c
-
-testing redirections
-
-ls > redirec.txt
-
-cat < redirec.txt > redirec2.txt
-
-testing pipes
-
-ls | sort
-
-ls -l | wc
+testing pipes <br />
+ls | sort <br />
+ls -l | wc <br />
 
 
 
