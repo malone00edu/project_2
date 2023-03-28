@@ -35,6 +35,7 @@ The program uses the glob() function to expand wildcard patterns in command argu
 **EXTENSIONS:**
 
 /* HOME */
+
 Essentially if when you 'cd' with no arguments, the program takes you back to the user's home directory. 
 
 The builtin_cd function checks if a directory argument is given. If yes, chdir() is used to change directory. If no argument is given, it gets the value of the HOME environment variable and change the directory back to the user's home dir. getenv() is used to retrieve the value of an environment variable, in this case, the HOME environment variable which represents the user's home directory. If the directory does not exist, the function prints an error message. 
