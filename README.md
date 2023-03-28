@@ -65,21 +65,31 @@ pwd
 cd ../     (to test if the home extension work just cd with no arguments and ls)
 
 Testing cmds
+
 ls
+
 cd 
+
 cat mysh.c
 
 Testing wildcards
+
 ls *.c
+
 ls m*h.c
 
 testing redirections
+
 ls > redirec.txt
+
 cat < redirec.txt > redirec2.txt
 
 testing pipes
+
 ls | sort
+
 ls -l | wc
+
 
 
 
