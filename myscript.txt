@@ -1,4 +1,13 @@
 ls
+echo -------------
 ls -l
+echo -------------
 pwd
+echo -------------
+ls > newfile.txt
+cat newfile.txt
+echo -------------
+ls *.c
+echo -------------
+ls | sort
 exit
