@@ -2,7 +2,7 @@
 spring 2023 - cs214 - project 2
 
 
-**Intro:**
+**INTRO:** 
 
 This is a basic shell program in C that can run in interactive or batch mode. 
 
@@ -10,15 +10,16 @@ When you enter a command, the program takes the input and separates it into indi
 
 The program also handles errors that might occur, like typos, incorrect syntax, or file system issues. It prints error messages and exits with an error code if needed. The program frees up any memory that was allocated and starts over again until "exit" is inputed or it reaches the end of the batch file.
 
+<hr>
 
 **DESIGN & IMPLEMENTATION**
 
 **Some key files you may see in this zip:** </br>
-header.h -- contains function prototypes and other declarations that are needed by other files in this program  </br>
-builtinfunctions.c -- handles functions like pwd and cd </br>
-mysh.c -- the main file that sets up data structures and control flow for the shell. Includes a loop that reads input from the user or a batch file and executes the commands.  </br>
-readcommands.c -- responsible for reading input from the user or batch file, parsing it into tokens, and storing the tokens in appropriate data structures. </br>
-piperedirect.c -- handles execution of nonbuilt in commands, parses commands for redirections/wildcards/pipes </br>
+header.h -> contains function prototypes and other declarations that are needed by other files in this program  </br>
+builtinfunctions.c -> handles functions like pwd and cd </br>
+mysh.c -> the main file that sets up data structures and control flow for the shell. Includes a loop that reads input from the user or a batch file and executes the commands.  </br>
+readcommands.c -> responsible for reading input from the user or batch file, parsing it into tokens, and storing the tokens in appropriate data structures. </br>
+piperedirect.c -> handles execution of nonbuilt in commands, parses commands for redirections/wildcards/pipes </br>
 
 
 **BATCHMODE - INTERACTIVE MODE**
@@ -45,20 +46,22 @@ Strcmp() is used to detect whether redirection are found in the instruction, if 
 
 Similarly, strcmp() is used to detect if pipes are found in the instructions. Two child processes are created if pipes are detected, which communicate with each other through a pipe. Each child process runs one of the two commands on either side of the pipe.
 
+<hr> 
 
 **EXTENSIONS:**
 
+**Escape Sequence**
+Escape sequence allows you to treat commands as regular tokens. if you run the code echo hello>world the program will think that > is a command and redirects it to the output world. If you do echo hello\>world, it will treat the > as a regular token, or part of the string. The output will be hello>world.
 
+A switch case is use to handle escape characters such as whitespace, pipes, redirects, if '\' is detected before these character, the escaped character willb be moved to the current position and the rest of the token is shifted to the left to remove the backslash using memmove().
 
-**HOME**
-
-Essentially if when you 'cd' with no arguments, the program takes you back to the user's home directory. 
+**Home**
+Home extension  takes you back to the user's home directory when you 'cd with no arugments.
 
 The builtin_cd function checks if a directory argument is given. If yes, chdir() is used to change directory. If no argument is given, it gets the value of the HOME environment variable and change the directory back to the user's home dir. getenv() is used to retrieve the value of an environment variable, in this case, the HOME environment variable - the user's home directory. If the directory does not exist, the function prints an error message.'Sprintf' used to concatenate the home environment variable and the rest of the directory string, from the second character if it starts with a ~. 
 
 
-
-
+<hr>
 
 **TESTING**
 
@@ -74,6 +77,7 @@ There is a file call 'myscript.txt' that contain some basic commands such as ls,
 After calling make, type ' ./mysh ' to run the program.
 
 **///USE THESE COMMANDS TO TEST///** <br />
+
 pwd <br />
 cd ../     (to test if the home extension work just cd with no arguments and ls)  <br />
 ls <br />
