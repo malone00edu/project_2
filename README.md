@@ -60,7 +60,7 @@ The builtin_cd function checks if a directory argument is given. If yes, chdir()
 
 **TESTING**
 
-First compile the files calling 'make' in linux terminal, and then /mysh to run the program.
+First compile the files calling 'make' in linux terminal
 
 **/* BATCHMODE: */**
 
