@@ -11,9 +11,17 @@ When you enter a command, the program takes the input and separates it into indi
 The program also handles errors that might occur, like typos, incorrect syntax, or file system issues. It prints error messages and exits with an error code if needed. The program frees up any memory that was allocated and starts over again until "exit" is inputed or it reaches the end of the batch file.
 
 
-**IMPLEMENTATION**
+**DESIGN & IMPLEMENTATION**
 
-/* BATCHMODE/INTERACTIVE MODE: */
+**Some key files you may see in this zip:** </br>
+header.h -- contains function prototypes and other declarations that are needed by other files in this program  </br>
+builtinfunctions.c -- handles functions like pwd and cd </br>
+mysh.c -- the main file that sets up data structures and control flow for the shell. Includes a loop that reads input from the user or a batch file and executes the commands.  </br>
+readcommands.c -- responsible for reading input from the user or batch file, parsing it into tokens, and storing the tokens in appropriate data structures. </br>
+redirects.c -- handles execution of nonbuilt in commands, parses commands for redirections/wildcards/pipes </br>
+
+
+**/* BATCHMODE/INTERACTIVE MODE: */**
 
 Both batch mode and interactive mode use a loop to handle parsing and execution of commands. The loop reads input from either a file -batch mode- or from the user -interactive mode- , parses the input into commands and arguments and executes the commands using execv() (non-built in commands).
 
@@ -22,20 +30,20 @@ In batch mode, the program opens the specified file and uses the "lseek" functio
 In interactive mode, the shell takes input commands from the user through the stdin (keyboard). The shell reads the command input, creates tokens from the command, and executes it. Similar to the batch mode, memory is allocated using "calloc" function. This repeats until the user enters the exit command.
 
 
-/* Wildcards: */
+**/* Wildcards: */**
 
 The program uses the glob() function to expand wildcard patterns in command arguments. When a wildcard pattern is detected, it calls glob() to generate a list of filenames matching the pattern, and replaces the wildcard argument with the list of filenames.
 
 
-/* Redirections: */
+**/* Redirections: */**
 
 
-/* Pipes: */
+**/* Pipes: */**
 
 
 **EXTENSIONS:**
 
-/* HOME */
+**/* HOME */**
 
 Essentially if when you 'cd' with no arguments, the program takes you back to the user's home directory. 
 
@@ -49,12 +57,12 @@ The builtin_cd function checks if a directory argument is given. If yes, chdir()
 
 First compile the files calling 'make' in linux terminal, and then /mysh to run the program.
 
-/* BATCHMODE: */
+**/* BATCHMODE: */**
 
 There is a file call 'myscript.txt' that contain some basic commands such as ls, wildcards, redirections, pipes. Simply type ' ./mysh myscrip.txt ' to test batch mode.
 
 
-/* INTERACTIVE: */
+**/* INTERACTIVE: */**
 
 After calling make, type ./mysh to run the program.
 
