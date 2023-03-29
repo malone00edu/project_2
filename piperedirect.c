@@ -14,6 +14,8 @@ void execute(char **instructions, int *tokenIndex, bool *validExecution) {
     int outdirect = 0;
     int din = 0;
     int dout = 0;
+    size_t *arrRows = calloc(1, sizeof(int *));
+    size_t *arrCols = calloc(1, sizeof(int *));
 
     for (int i = 0; i < *tokenIndex; i++) {
         if ((strcmp(instructions[i], "<") == 0) | (strcmp(instructions[i], ">") == 0)) {
@@ -26,23 +28,7 @@ void execute(char **instructions, int *tokenIndex, bool *validExecution) {
         }
     }
 
-    create_2d_array(instructions, tokenIndex, validExecution, symbolsFound, &arguments, &cmd1, &cmd2);
-
-    for (int i = 0; i < symbolsFound + 1; i++) {
-        for (int j = 0; j < *tokenIndex + 1; j++) {
-            if (arguments[i][j] != NULL) {
-                if (strchr(arguments[i][j], '*') != NULL) {
-                    glob_t paths;
-                    glob(arguments[i][j], GLOB_NOCHECK | GLOB_TILDE, NULL, &paths);
-                    for (int k = 0; k < paths.gl_pathc; k++) {
-                        free(arguments[i][j]);
-                        arguments[i][j] = strdup(paths.gl_pathv[j]);
-                    }
-                    globfree(&paths);
-                }
-            }
-        }
-    }
+    create_2d_array(instructions, tokenIndex, validExecution, symbolsFound, arrRows, arrCols, &arguments, &cmd1, &cmd2);
 
     /*
      * 2D Array example for "ls -1 | wc -l"
@@ -84,7 +70,7 @@ void execute(char **instructions, int *tokenIndex, bool *validExecution) {
             close(fd[1]);
 
             if (redirectSymbolFound) {
-                use_redirection(validExecution, arguments, symbolsFound, tokenIndex,
+                use_redirection(validExecution, arguments, arrRows, arrCols,
                                 indirect, outdirect, din, dout);
             }
             execv(cmd1, *arguments);
@@ -103,7 +89,7 @@ void execute(char **instructions, int *tokenIndex, bool *validExecution) {
             dup2(fd[0], STDIN_FILENO);
             close(fd[0]);
             if (redirectSymbolFound) {
-                use_redirection(validExecution, arguments, symbolsFound, tokenIndex,
+                use_redirection(validExecution, arguments, arrRows, arrCols,
                                 indirect, outdirect, din, dout);
             }
 
@@ -126,7 +112,7 @@ void execute(char **instructions, int *tokenIndex, bool *validExecution) {
             wait(NULL);
         } else if (pid == 0) {
             if (redirectSymbolFound) {
-                use_redirection(validExecution, arguments, symbolsFound, tokenIndex,
+                use_redirection(validExecution, arguments, arrRows, arrCols,
                                 indirect, outdirect, din, dout);
             }
             execv(cmd1, *arguments);
@@ -136,8 +122,8 @@ void execute(char **instructions, int *tokenIndex, bool *validExecution) {
             }
         }
     }
-    for (int i = 0; i < symbolsFound + 1; i++) {
-        for (int j = 0; j < *tokenIndex + 1; j++) {
+    for (int i = 0; i < *arrRows; i++) {
+        for (int j = 0; j < *arrCols; j++) {
             free(arguments[i][j]);
         }
         free(arguments[i]);
@@ -147,6 +133,8 @@ void execute(char **instructions, int *tokenIndex, bool *validExecution) {
     if (pipeSymbolFound) {
         free(cmd2);
     }
+    free(arrRows);
+    free(arrCols);
 }
 
 
@@ -187,23 +175,37 @@ void find_path(char **cmd, bool *validExecution) {
 
 
 void create_2d_array(char *const *instructions, const int *tokenIndex, bool *validExecution, size_t symbolsFound,
-                     char ****arguments, char **cmd1, char **cmd2) {
-    (*arguments) = malloc((symbolsFound + 1) * sizeof(char **)); // create rows
+                     size_t *arrRows, size_t *arrCols, char ****arguments, char **cmd1, char **cmd2) {
+
+    (*arrRows) = (symbolsFound + 1);
+    (*arguments) = malloc((*arrRows) * sizeof(char **)); // create rows
     for (int i = 0; i < symbolsFound + 1; i++) {
         (*arguments)[i] = (char **) "";
     }
-    for (int i = 0; i < symbolsFound + 1; i++) {
-        (*arguments)[i] = calloc(*tokenIndex + 1, sizeof(char *)); // create columns
+
+    int wildCardCount = 0;
+    for (int i = 0; i < *tokenIndex; i++) { // Replaced instructions[i] != NULL w/ *tokenIndex. See line 17
+        if (strchr(instructions[i], '*') != NULL) {
+            glob_t paths;
+            glob(instructions[i], GLOB_NOCHECK | GLOB_TILDE, NULL, &paths);
+            wildCardCount += paths.gl_pathc;
+            globfree(&paths);
+        }
     }
+    (*arrCols) = *tokenIndex + wildCardCount + 1;
+    for (int i = 0; i < symbolsFound + 1; i++) {
+        (*arguments)[i] = calloc((*arrCols), sizeof(char *)); // create columns
+    }
+
     int index = 0;
     int rowPos = 0;
     int colPos = 0;
     while (index < *tokenIndex) { // Filling out a 2D array. Advances to next row when "|" is found
         if (index == 0) { // 1st cmd in instructions array
-             // args with no path attached
-            check_for_wildcard(instructions, arguments, index, rowPos, colPos);
-            (*cmd1) = strdup((*arguments)[rowPos][colPos]); // ex: "/bin/ls"
+            // args with no path attached
+            (*cmd1) = strdup(instructions[index]); // ex: "/bin/ls"
             find_path(cmd1, validExecution);
+            check_for_wildcard(instructions, arguments, index, rowPos, colPos);
             colPos++;
         }
         if (index > 0) { // fill out first row until "|" is encountered.
@@ -216,16 +218,14 @@ void create_2d_array(char *const *instructions, const int *tokenIndex, bool *val
                 colPos = 0;
                 index++;
                 // args with no path attached
-                check_for_wildcard(instructions, arguments, index, rowPos, colPos);
-                (*cmd2) = strdup((*arguments)[rowPos][colPos]); // ex: : "/bin/wc". After a '|', there must be a cmd
+                (*cmd2) = strdup(instructions[index]); // ex: : "/bin/wc". After a '|', there must be a cmd
                 find_path(cmd2, validExecution);
+                check_for_wildcard(instructions, arguments, index, rowPos, colPos);
                 colPos++;
             }
-
-
         }
         index++;
-        if (index == *tokenIndex) {
+        if (index == *tokenIndex + wildCardCount + 1) {
             (*arguments)[rowPos][colPos] = NULL;
         }
     }
@@ -236,19 +236,26 @@ void check_for_wildcard(char *const *instructions, char ****arguments, int index
         glob_t paths;
         glob(instructions[index], GLOB_NOCHECK | GLOB_TILDE, NULL, &paths);
         for (int j = 0; j < paths.gl_pathc; j++) {
+            //printf("%s\n", (*arguments)[rowPos][colPos]);
+            //free((*arguments)[rowPos][colPos]);
             (*arguments)[rowPos][colPos] = strdup(paths.gl_pathv[j]);
+            colPos++;
         }
         globfree(&paths);
     } else {
+        free((*arguments)[rowPos][colPos]);
         (*arguments)[rowPos][colPos] = strdup(instructions[index]);
+        //colPos++;
     }
 }
 
 
-void use_redirection(bool *validExecution, char ***arguments, size_t symbolsFound, int *tokenIndex,
-                     int indirect, int outdirect, int din, int dout) {
-    for (int row = 0; row < symbolsFound + 1; row++) {
-        for (int col = 0; col < *tokenIndex + symbolsFound; col++) {
+void
+use_redirection(bool *validExecution, char ***arguments, const size_t *arrRows, const size_t *arrCols, int indirect,
+                int outdirect,
+                int din, int dout) {
+    for (int row = 0; row < *arrRows; row++) {
+        for (int col = 0; col < *arrCols; col++) {
             if (arguments[row][col] != NULL) {
                 if (strcmp(arguments[row][col], "<") == 0) {
                     indirect = col + 1;

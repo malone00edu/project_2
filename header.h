@@ -26,11 +26,12 @@ void is_indirect(char ***arguments, int row, int indirect, int din, bool *validE
 
 void is_outdirect(char ***arguments, int row, int outdirect, int dout, bool *validExecution);
 
-void use_redirection(bool *validExecution, char ***arguments, size_t symbolsFound, int *tokenIndex,
-                     int indirect, int outdirect, int din, int dout);
+void
+use_redirection(bool *validExecution, char ***arguments, const size_t *arrRows, const size_t *arrCols, int indirect, int outdirect,
+                int din, int dout);
 
 void create_2d_array(char *const *instructions, const int *tokenIndex, bool *validExecution, size_t symbolsFound,
-                     char ****arguments, char **cmd1, char **cmd2);
+                     size_t *arrRows, size_t *arrCols, char ****arguments, char **cmd1, char **cmd2);
 
 void check_for_wildcard(char *const *instructions, char ****arguments, int index, int rowPos, int colPos);
 
