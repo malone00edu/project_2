@@ -113,7 +113,7 @@ Input: 'ls -l | wc > output.txt'
 Input: 'ls *.c > newfile.txt'
 <br>Output: Gets all the files with .c extension in teh directory and redirects to newfile.txt (testing redirects with wildcards)
 
-Input: 'ls */*.c' 
+Input: 'ls * /*.c' 
 <br>Output: go to all directories in the current, and prints all the .c files. (use cd .. and then do this command so we guarantee there is a directory for it to look at)
 
 Input: 'exit'
