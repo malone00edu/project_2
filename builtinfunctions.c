@@ -9,36 +9,28 @@
 
 void builtin_cd(char *const *instructions) {
     char *dir = instructions[1];
-    if (dir != NULL) {
-        if (strncmp(dir, "~/", 2) == 0) {
-            // replace the tilde with the value of HOME
-            char *home = getenv("HOME");
-            if (home == NULL) {
-                printf("!mysh> HOME environment variable missing\n");
-            } else {
-                char newdir[strlen(home) + strlen(dir)];
-                sprintf(newdir, "%s%s", home, dir + 1);
-                if (chdir(newdir) != 0) {
-                    printf("!mysh> No such file or directory.\n");
-                }
-            }
-        } else {
-            if (chdir(dir) != 0) {
-                printf("!mysh> No such file or directory.\n");
-            }
-        }
-    } else {
-        char *home = getenv("HOME");
-        if (home == NULL) {
-            printf("!mysh> HOME environment variable missing.\n");
-        } else {
-            if (chdir(home) != 0) {
-                printf("!mysh> No such file or directory.\n");
-            }
+    if (dir == NULL) {
+        dir = getenv("HOME");
+        if (dir == NULL) {
+            prompt_homeerr();
+            return;
         }
     }
-}
+    else if (dir[0] == '~') {
+        char *home = getenv("HOME");
+        if (home == NULL) {
+            prompt_homeerr();
+            return;
+        }
+        char newdir[strlen(home) + strlen(dir)];
+        sprintf(newdir, "%s%s", home, dir+1);
+        dir = newdir;
+    }
 
+    if (chdir(dir) != 0) {
+        prompt_nodir();
+    }
+}
 
 void builtin_pwd() {
     char current[2000];
