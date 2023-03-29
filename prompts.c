@@ -37,3 +37,13 @@ void prompt_goodbye() {
     write(STDOUT_FILENO, byeBuf, strlen(byeBuf));
 
 }
+
+void prompt_homeerr(){
+    char *enverr = {"!mysh> HOME environment variable missing"};
+    write (STDOUT_FILENO, enverr, strlen(enverr));
+}
+
+void prompt_nodir(){
+    char *nodir= {"!mysh> No such file or directory.\n"};
+    write (STDOUT_FILENO, nodir, strlen(nodir)); 
+}
