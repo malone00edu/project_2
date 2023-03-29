@@ -62,6 +62,10 @@ Home extension  takes you back to the user's home directory when you 'cd with no
 
 The builtin_cd function checks if a directory argument is given. If yes, chdir() is used to change directory. If no argument is given, it gets the value of the HOME environment variable and change the directory back to the user's home dir. getenv() is used to retrieve the value of an environment variable - the user's home directory. If the directory does not exist, the function prints an error message.'Sprintf' used to concatenate the home environment variable and the rest of the directory string, from the second character if it starts with a ~. 
 
+**Directory Wilcards**
+Glob library allows the usage of wildcards such as: <br>
+ls *.c - listing all the .c files in the directory <br>
+ls foo*bar - list file that starts with foo and ends with bar.
 
 <hr>
 
@@ -107,8 +111,11 @@ Input: 'ls m*.c'
 Input: 'ls > redirect.txt'
 <br>Output: should put the results of ls in redirect.txt folder (testing redirects -cat the new file when testing )
 
-Input: 'cat < redirect.txt > output.txt'
-<br>Output: read the contents of redirect.txt and put it in output.txt (testing redirects)
+Input: 'cat < foo > bar'
+<br>Output: cat the input of foo and output it to bar.
+
+Input: 'sort > bar < foo'
+<br>Output:  sort the inputs of foo and output it to bar (similar to sort < foo > bar)
 
 Input: 'ls -l | wc'
 <br>Output: the output of ls -l is passed as input to wc, which counts the number of lines, words, and bytes in ls -l (testing pipes)
