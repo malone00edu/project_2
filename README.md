@@ -18,7 +18,7 @@ header.h -- contains function prototypes and other declarations that are needed 
 builtinfunctions.c -- handles functions like pwd and cd </br>
 mysh.c -- the main file that sets up data structures and control flow for the shell. Includes a loop that reads input from the user or a batch file and executes the commands.  </br>
 readcommands.c -- responsible for reading input from the user or batch file, parsing it into tokens, and storing the tokens in appropriate data structures. </br>
-redirects.c -- handles execution of nonbuilt in commands, parses commands for redirections/wildcards/pipes </br>
+piperedirect.c -- handles execution of nonbuilt in commands, parses commands for redirections/wildcards/pipes </br>
 
 
 **/* BATCHMODE/INTERACTIVE MODE: */**
@@ -35,10 +35,15 @@ In interactive mode, the shell takes input commands from the user through the st
 The program uses the glob() function to expand wildcard patterns in command arguments. When a wildcard pattern is detected, it calls glob() to generate a list of filenames matching the pattern, and replaces the wildcard argument with the list of filenames.
 
 
-**/* Redirections: */**
+**/* Redirections: */**  
 
+Strcmp() is used to detect whether redirection are found in the instruction, if so, the use_redirection function is called which handles redirection by iterating over the 2D array of command line arguments. If < is detected, it reads input from the file specified, and if > is found, it writes output to the file specified
+
+2D array is use to show each instruction as a sequence of arguments. Each row in the array represents an instruction, and each column in that row represents an argument. Basically its use so that we can execute pipes with redirections easier.
 
 **/* Pipes: */**
+
+Similarly, strcmp() is used to detect if pipes are found in the instructions. Two child processes are created if pipes are detected, which communicate with each other through a pipe. Each child process runs one of the two commands on either side of the pipe.
 
 
 **EXTENSIONS:**
@@ -70,14 +75,13 @@ After calling make, type ./mysh to run the program.
 pwd <br />
 cd ../     (to test if the home extension work just cd with no arguments and ls)  <br />
 ls <br />
-cd  <br />
 cat mysh.c <br />
-ls *.c <br />
+ls *.c > newfile.txt <br />
 ls m*h.c  <br />
 ls > redirec.txt <br />
 cat < redirec.txt > redirec2.txt  <br />
 ls | sort <br />
-ls -l | wc <br />
+ls -l | wc > newfile.txt <br />
 
 
 
