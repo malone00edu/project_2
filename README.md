@@ -26,7 +26,7 @@ piperedirect.c -> handles execution of nonbuilt in commands, parses commands for
 
 Both batch mode and interactive mode use a loop to handle parsing and execution of commands. The loop reads input from either a file -batch mode- or from the user -interactive mode- , parses the input into commands and arguments and executes the commands using execv() (non-built in commands).
 
-In batch mode, the program opens the specified file and uses the "lseek" function to get the file size. Memory is allocated dynamically using calloc(). The shell reads the file using the "read" function, stores the commands in memory (using a payload), creates tokens from the commands, and executes them. he allocated memory is freed, once all the commands in the file have been executed.
+In batch mode, the program opens the specified file and uses the "lseek" function to get the file size. Memory is allocated dynamically using calloc(). The shell reads the file using read(), stores the commands in memory (using a payload), creates tokens from the commands, and executes them. The allocated memory is freed, once all the commands in the file have been executed.
 
 In interactive mode, the shell takes input commands from the user through the stdin (keyboard). The shell reads the command input, creates tokens from the command, and executes it. Similar to the batch mode, memory is allocated using "calloc" function. This repeats until the user enters the exit command.
 
@@ -52,20 +52,20 @@ Similarly, strcmp() is used to detect if pipes are found in the instructions. Tw
 
 **Escape Sequence** 
 
-Escape sequence allows you to treat commands as regular tokens. if you run the code echo hello>world the program will think that > is a command and redirects it to the output world. If you do echo hello\>world, it will treat the > as a regular token, or part of the string. The output will be hello>world.
+Escape sequence allows you to treat commands as regular tokens. if you run the code echo hello>world the program will think that > is a command and redirects it to the output world. If you do echo hello\\>world, it will treat the > as a regular token, or part of the string. The output will be hello>world.
 
-A switch case is use to handle escape characters such as whitespace, pipes, redirects, if '\' is detected before these character, the escaped character willb be moved to the current position and the rest of the token is shifted to the left to remove the backslash using memmove().
+In the read_command function, a switch case is use to handle escape characters such as whitespace, pipes, redirects, if '\' is detected before these character, the escaped character will be moved to the current position and the rest of the token is shifted to the left to remove the backslash using memmove().
 
 **Home**
 
 Home extension  takes you back to the user's home directory when you 'cd with no arugments.
 
-The builtin_cd function checks if a directory argument is given. If yes, chdir() is used to change directory. If no argument is given, it gets the value of the HOME environment variable and change the directory back to the user's home dir. getenv() is used to retrieve the value of an environment variable - the user's home directory. If the directory does not exist, the function prints an error message.'Sprintf' used to concatenate the home environment variable and the rest of the directory string, from the second character if it starts with a ~. 
+The builtin_cd function checks if a directory argument is given. If yes, chdir() is used to change directory. If no argument is given, it gets the value of the HOME environment variable and change the directory back to the user's home dir. getenv() is used to retrieve the value of an environment variable - the user's home directory. It prints an error message, if the directory does not exist.'Sprintf' used to concatenate the home environment variable and the rest of the directory string, from the second character if it starts with a '~'. 
 
 **Directory Wilcards** <br>
 Glob library allows the usage of wildcards such as: <br>
-ls *.c - listing all the .c files in the directory <br>
-ls foo*bar - list file that starts with foo and ends with bar.
+ls \*.c - listing all the .c files in the directory <br>
+ls foo\*bar - list file that starts with foo and ends with bar.
 
 <hr>
 
@@ -90,22 +90,22 @@ Input: 'pwd'
 Input: 'cd' 
 <br>Output: should take you back to the home directory. (testing home extension)
 
-Input: 'echo hello\ world' 
+Input: 'echo hello\\ world' 
 <br>Output: should print 'hello world' (testing escape sequence - you can use another cmd instead of echo)
 
-Input: 'echo hello\> world' 
+Input: 'echo hello\\> world' 
 <br>Output: should print 'hello> world'
 
 Input: 'ls' 
 <br>Output: should list all files in current directory (could test other basic functions like cat, touch)
 
-Input: 'ls *.c'
-<br>Output: should list all files with *.c extensions (testing wildcards)
+Input: 'ls \*.c'
+<br>Output: should list all files with \*.c extensions (testing wildcards)
 
-Input: 'ls */*.c' 
+Input: 'ls \*/*.c' 
 <br>Output: Go to all directories in the current, and prints all the .c files. (use cd .. and then do this command so we guarantee there is a directory for it to look at)
 
-Input: 'ls m*.c'
+Input: 'ls m\*.c'
 <br>Output: Lists files that start with m and end with .c extension
 
 Input: 'ls > redirect.txt'
@@ -123,8 +123,8 @@ Input: 'ls -l | wc'
 Input: 'ls -l | wc > output.txt'
 <br>Output: similar to above but redirect the output to output.txt (testing redirects with pipes)
 
-Input: 'ls *.c > newfile.txt'
-<br>Output: Gets all the files with .c extension in teh directory and redirects to newfile.txt (testing redirects with wildcards)
+Input: 'ls \*.c > newfile.txt'
+<br>Output: Gets all the files with .c extension in the directory and redirects to newfile.txt (testing redirects with wildcards)
 
 
 
@@ -132,8 +132,8 @@ Input: 'exit'
 <br>Output: Exits the program!
 
 
---To test errors prompts, input wrong file names etc--
-
+--To test errors prompts, input wrong file names etc...
+--The program does not support wildcards/redircs/piping with built in functions like cd, cwd, and exit
 
 
 
