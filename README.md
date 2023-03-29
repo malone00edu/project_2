@@ -98,6 +98,12 @@ Input: 'ls'
 Input: 'ls *.c'
 <br>Output: should list all files with *.c extensions (testing wildcards)
 
+Input: 'ls * /*.c' 
+<br>Output: Go to all directories in the current, and prints all the .c files. (use cd .. and then do this command so we guarantee there is a directory for it to look at)
+
+Input: 'ls m*.c'
+<br>Output: Lists files that start with m and end with .c extension
+
 Input: 'ls > redirect.txt'
 <br>Output: should put the results of ls in redirect.txt folder (testing redirects -cat the new file when testing )
 
@@ -113,8 +119,7 @@ Input: 'ls -l | wc > output.txt'
 Input: 'ls *.c > newfile.txt'
 <br>Output: Gets all the files with .c extension in teh directory and redirects to newfile.txt (testing redirects with wildcards)
 
-Input: 'ls * /*.c' 
-<br>Output: Go to all directories in the current, and prints all the .c files. (use cd .. and then do this command so we guarantee there is a directory for it to look at)
+
 
 Input: 'exit'
 <br>Output: Exits the program!
