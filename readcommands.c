@@ -67,6 +67,7 @@ void helper_input(int fd, int type, char *fname, char *payload, off_t *filePtrPo
     }
 }
 
+/*
 void helper_create_tokens(char *par[], char *instr[], char *payload, char *tokens,
                           int *tokenIndex) { // create tokens from the payload
     *tokenIndex = 0;
@@ -81,4 +82,55 @@ void helper_create_tokens(char *par[], char *instr[], char *payload, char *token
         par[j] = instr[j];
     }
     par[*tokenIndex] = NULL; // insert NULL into this position. needed for execv().
+}
+*/
+
+//implemented escape sequence detection
+void helper_create_tokens(char *par[], char *instr[], char *payload, char *tokens,
+                          int *tokenIndex) {
+    *tokenIndex = 0;
+    tokens = strtok(payload, " \n");
+    
+    while (tokens != NULL) {
+        int len = strlen(tokens);
+        for (int i = 0; i < len; i++) {
+            if (tokens[i] == '\\') { // found a backslash
+                if (i == len - 1) { // backslash at the end of the token
+                    tokens[i] = '\0';
+                    break;
+                }
+                // handle escaped character using switches
+                switch (tokens[i+1]) {
+                    case ' ': 
+                    case '|': 
+                    case '<': 
+                    case '>': 
+                    case '*': 
+                    case '\\':
+                        // move the escaped character to the current position
+                        tokens[i] = tokens[i+1];
+                        // shift the rest of the token to the left
+                        memmove(tokens + i + 1, tokens + i + 2, len - i - 1);
+                        len--;
+                        break;
+                    case '\n': // escaped newline
+                        // move the rest of the token to the left
+                        memmove(tokens + i, tokens + i + 2, len - i - 1);
+                        len -= 2;
+                        break;
+                    default: 
+                        // move the backslash to the current pos
+                        tokens[i] = '\\';
+                        break;
+                }
+            }
+        }
+        instr[(*tokenIndex)++] = strdup(tokens);
+        tokens = strtok(NULL, " \n");
+    }
+
+    for (int j = 0; j < *tokenIndex; j++) {
+        par[j] = instr[j];
+    }
+    par[*tokenIndex] = NULL;
 }
