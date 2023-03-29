@@ -76,7 +76,7 @@ There is a file call 'myscript.txt' that contain some basic commands such as ls,
 
 **INTERACTIVE:**
 
-After calling make, type ' ./mysh ' to run the program.
+After calling make, type ' ./mysh ' to run the program. Input 'exit' to stop program.
 
 **///USE THESE COMMANDS TO TEST///** <br />
 
