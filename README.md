@@ -98,7 +98,7 @@ Input: 'ls'
 Input: 'ls *.c'
 <br>Output: should list all files with *.c extensions (testing wildcards)
 
-Input: 'ls * /*.c' 
+Input: 'ls */*.c' 
 <br>Output: Go to all directories in the current, and prints all the .c files. (use cd .. and then do this command so we guarantee there is a directory for it to look at)
 
 Input: 'ls m*.c'
