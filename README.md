@@ -44,7 +44,7 @@ Strcmp() is used to detect whether redirection are found in the instruction, if 
 
 **Pipes:**
 
-Similarly, strcmp() is used to detect if pipes are found in the instructions. Two child processes are created if pipes are detected, which communicate with each other through a pipe. Each child process runs one of the two commands on either side of the pipe.
+Similarly, strcmp() is used to detect if pipes are found in the instructions. Two child processes are created if pipes are detected, which communicate with each other through a pipe. Each child process runs one of the two commands on either side of the pipe. (Note: program only support one pipe)
 
 <hr> 
 
