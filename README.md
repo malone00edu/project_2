@@ -60,7 +60,7 @@ A switch case is use to handle escape characters such as whitespace, pipes, redi
 
 Home extension  takes you back to the user's home directory when you 'cd with no arugments.
 
-The builtin_cd function checks if a directory argument is given. If yes, chdir() is used to change directory. If no argument is given, it gets the value of the HOME environment variable and change the directory back to the user's home dir. getenv() is used to retrieve the value of an environment variable, in this case, the HOME environment variable - the user's home directory. If the directory does not exist, the function prints an error message.'Sprintf' used to concatenate the home environment variable and the rest of the directory string, from the second character if it starts with a ~. 
+The builtin_cd function checks if a directory argument is given. If yes, chdir() is used to change directory. If no argument is given, it gets the value of the HOME environment variable and change the directory back to the user's home dir. getenv() is used to retrieve the value of an environment variable - the user's home directory. If the directory does not exist, the function prints an error message.'Sprintf' used to concatenate the home environment variable and the rest of the directory string, from the second character if it starts with a ~. 
 
 
 <hr>
@@ -113,8 +113,12 @@ Input: 'ls -l | wc > output.txt'
 Input: 'ls *.c > newfile.txt'
 <br>Output: Gets all the files with .c extension in teh directory and redirects to newfile.txt (testing redirects with wildcards)
 
+Input: 'ls */*.c' 
+<br>Output: go to all directories in the current, and prints all the .c files. (use cd .. and then do this command so we guarantee there is a directory for it to look at)
+
 Input: 'exit'
 <br>Output: Exits the program!
+
 
 --To test errors prompts, input wrong file names etc--
 
