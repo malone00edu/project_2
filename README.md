@@ -21,7 +21,7 @@ readcommands.c -- responsible for reading input from the user or batch file, par
 piperedirect.c -- handles execution of nonbuilt in commands, parses commands for redirections/wildcards/pipes </br>
 
 
-**/* BATCHMODE/INTERACTIVE MODE: */**
+**BATCHMODE - INTERACTIVE MODE**
 
 Both batch mode and interactive mode use a loop to handle parsing and execution of commands. The loop reads input from either a file -batch mode- or from the user -interactive mode- , parses the input into commands and arguments and executes the commands using execv() (non-built in commands).
 
@@ -30,25 +30,27 @@ In batch mode, the program opens the specified file and uses the "lseek" functio
 In interactive mode, the shell takes input commands from the user through the stdin (keyboard). The shell reads the command input, creates tokens from the command, and executes it. Similar to the batch mode, memory is allocated using "calloc" function. This repeats until the user enters the exit command.
 
 
-**/* Wildcards: */**
+**Wildcards:**
 
 The program uses the glob() function to expand wildcard patterns in command arguments. When a wildcard pattern is detected, it calls glob() to generate a list of filenames matching the pattern, and replaces the wildcard argument with the list of filenames.
 
 
-**/* Redirections: */**  
+**Redirections:**
 
 Strcmp() is used to detect whether redirection are found in the instruction, if so, the use_redirection function is called which handles redirection by iterating over the 2D array of command line arguments. If < is detected, it reads input from the file specified, and if > is found, it writes output to the file specified
 
 2D array is use to show each instruction as a sequence of arguments. Each row in the array represents an instruction, and each column in that row represents an argument. Basically its use so that we can execute pipes with redirections easier.
 
-**/* Pipes: */**
+**Pipes:**
 
 Similarly, strcmp() is used to detect if pipes are found in the instructions. Two child processes are created if pipes are detected, which communicate with each other through a pipe. Each child process runs one of the two commands on either side of the pipe.
 
 
 **EXTENSIONS:**
 
-**/* HOME */**
+
+
+**HOME**
 
 Essentially if when you 'cd' with no arguments, the program takes you back to the user's home directory. 
 
@@ -62,12 +64,12 @@ The builtin_cd function checks if a directory argument is given. If yes, chdir()
 
 First compile the files calling 'make' in linux terminal
 
-**/* BATCHMODE: */**
+**BATCHMODE:**
 
 There is a file call 'myscript.txt' that contain some basic commands such as ls, wildcards, redirections, pipes. Simply type ' ./mysh myscrip.txt ' to test batch mode.
 
 
-**/* INTERACTIVE: */**
+**INTERACTIVE:**
 
 After calling make, type ' ./mysh ' to run the program.
 
