@@ -59,7 +59,9 @@ void prompt_batch();
 
 void prompt_goodbye();
 
+void prompt_homeerr();
 
+void prompt_nodir();
 
 
 
