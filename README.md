@@ -113,6 +113,9 @@ Input: 'ls -l | wc > output.txt'
 Input: 'ls *.c > newfile.txt'
 <br>Output: Gets all the files with .c extension in teh directory and redirects to newfile.txt (testing redirects with wildcards)
 
+Input: 'exit'
+<br>Output: Exits the program!
+
 --To test errors prompts, input wrong file names etc--
 
 
