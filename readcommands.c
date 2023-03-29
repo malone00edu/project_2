@@ -72,7 +72,6 @@ void helper_create_tokens(char *par[], char *instr[], char *payload, char *token
                           int *tokenIndex) { // create tokens from the payload
     *tokenIndex = 0;
     tokens = strtok(payload, " \n"); // create first token.
-
     while (tokens != NULL) {
         instr[(*tokenIndex)++] = strdup(tokens); // insert token into instructions array
         tokens = strtok(NULL, " \n"); // get/create next token.

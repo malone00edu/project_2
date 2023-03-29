@@ -5,30 +5,37 @@
 void execute(char **instructions, int *tokenIndex, bool *validExecution) {
 
     char ***arguments = NULL; // 2D Array
-    static char *cmd1;
-    static char *cmd2;
-    size_t symbolsFound = 0;
-    bool pipeSymbolFound = false;
-    bool redirectSymbolFound = false;
-    int indirect = 0;
-    int outdirect = 0;
-    int din = 0;
-    int dout = 0;
+    static char *cmd1 = NULL;
+    static char *cmd2 = NULL;
+    size_t redirectSymbolsFound = 0;
+    size_t pipeSymbolsFound = 0;
+    bool pipeFound = false;
+    bool redirectInFound = false;
+    bool redirectOutFound = false;
     size_t *arrRows = calloc(1, sizeof(int *));
     size_t *arrCols = calloc(1, sizeof(int *));
+    char *outFile = NULL;
+    char *inFile = NULL;
+
 
     for (int i = 0; i < *tokenIndex; i++) {
-        if ((strcmp(instructions[i], "<") == 0) | (strcmp(instructions[i], ">") == 0)) {
-            redirectSymbolFound = true;
-            symbolsFound++;
+        if ((strcmp(instructions[i], "<") == 0)) {
+            redirectInFound = true;
+            redirectSymbolsFound++;
         }
+        if ((strcmp(instructions[i], ">") == 0)) {
+            redirectOutFound = true;
+            redirectSymbolsFound++;
+        }
+
         if ((strcmp(instructions[i], "|") == 0)) {
-            pipeSymbolFound = true;
-            symbolsFound++;
+            pipeFound = true;
+            pipeSymbolsFound++;
         }
     }
 
-    create_2d_array(instructions, tokenIndex, validExecution, symbolsFound, arrRows, arrCols, &arguments, &cmd1, &cmd2);
+    create_2d_array(instructions, tokenIndex, validExecution, pipeSymbolsFound, arrRows, arrCols, &arguments, &cmd1,
+                    &cmd2);
 
     /*
      * 2D Array example for "ls -1 | wc -l"
@@ -52,7 +59,9 @@ void execute(char **instructions, int *tokenIndex, bool *validExecution) {
      *
      * */
 
-    if (pipeSymbolFound) { // If a pipe is found. Use this.
+    use_redirection(instructions, tokenIndex, &inFile, &outFile);
+
+    if (pipeFound) { // If a pipe is found. Use this.
         int fd[2];
         errno = 0;
         if (pipe(fd) == -1) { // create pipe
@@ -66,13 +75,17 @@ void execute(char **instructions, int *tokenIndex, bool *validExecution) {
             *validExecution = false;
         } else if (pid1 == 0) { // child 1
             close(fd[0]);
+            if (redirectInFound) {
+                int din = open(inFile, O_RDONLY);
+                if (din == -1) {
+                    printf("Failed to to open file! (%s)\n", strerror(errno));
+                    *validExecution = false;
+                }
+                dup2(din, STDOUT_FILENO);
+                close(din);
+            }
             dup2(fd[1], STDOUT_FILENO);
             close(fd[1]);
-
-            if (redirectSymbolFound) {
-                use_redirection(validExecution, arguments, arrRows, arrCols,
-                                indirect, outdirect, din, dout);
-            }
             execv(cmd1, *arguments);
             if (errno != 0) {
                 printf("Failed to execute command! (%s)\n", strerror(errno));
@@ -86,14 +99,17 @@ void execute(char **instructions, int *tokenIndex, bool *validExecution) {
             *validExecution = false;
         } else if (pid2 == 0) {
             close(fd[1]);
+            if (redirectOutFound) {
+                int dout = open(outFile, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP);
+                if (dout == -1) {
+                    printf("Failed to to open file! (%s)\n", strerror(errno));
+                    *validExecution = false;
+                }
+                dup2(dout, STDOUT_FILENO);
+                close(dout);
+            }
             dup2(fd[0], STDIN_FILENO);
             close(fd[0]);
-            if (redirectSymbolFound) {
-                use_redirection(validExecution, arguments, arrRows, arrCols,
-                                indirect, outdirect, din, dout);
-            }
-
-
             execv(cmd2, *(arguments + 1));
             if (errno != 0) {
                 printf("Failed to execute command! (%s)\n", strerror(errno));
@@ -108,20 +124,32 @@ void execute(char **instructions, int *tokenIndex, bool *validExecution) {
         }
     } else { // Else execute this part for redirects or single commands (With or without args).
         int pid = fork();
-        if (pid > 0) {
-            wait(NULL);
-        } else if (pid == 0) {
-            if (redirectSymbolFound) {
-                use_redirection(validExecution, arguments, arrRows, arrCols,
-                                indirect, outdirect, din, dout);
+        if (pid == 0) {
+            if (redirectInFound) {
+                int din = open(inFile, O_RDONLY);
+                if (din == -1) {
+                    printf("Failed to to open file! (%s)\n", strerror(errno));
+                    *validExecution = false;
+                }
+                dup2(din, STDIN_FILENO);
+                close(din);
+            }
+            if (redirectOutFound) {
+                int dout = open(outFile, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP);
+                if (dout == -1) {
+                    printf("Failed to to open file! (%s)\n", strerror(errno));
+                    *validExecution = false;
+                }
+                dup2(dout, STDOUT_FILENO);
+                close(dout);
             }
             execv(cmd1, *arguments);
-            if (errno != 0) {
-                printf("Failed to execute command! (%s)\n", strerror(errno));
-                *validExecution = false;
-            }
+
+        } else if (pid > 0) {
+            wait(NULL);
         }
     }
+
     for (int i = 0; i < *arrRows; i++) {
         for (int j = 0; j < *arrCols; j++) {
             free(arguments[i][j]);
@@ -130,11 +158,17 @@ void execute(char **instructions, int *tokenIndex, bool *validExecution) {
     }
     free(arguments);
     free(cmd1);
-    if (pipeSymbolFound) {
+    if (pipeFound) {
         free(cmd2);
     }
     free(arrRows);
     free(arrCols);
+    if (redirectInFound) {
+        free(inFile);
+    }
+    if (redirectOutFound) {
+        free(outFile);
+    }
 }
 
 
@@ -174,13 +208,14 @@ void find_path(char **cmd, bool *validExecution) {
 }
 
 
-void create_2d_array(char *const *instructions, const int *tokenIndex, bool *validExecution, size_t symbolsFound,
-                     size_t *arrRows, size_t *arrCols, char ****arguments, char **cmd1, char **cmd2) {
+void
+create_2d_array(char *const *instructions, const int *tokenIndex, bool *validExecution, size_t pipeSymbolsFound,
+                size_t *arrRows, size_t *arrCols, char ****arguments, char **cmd1, char **cmd2) {
 
-    (*arrRows) = (symbolsFound + 1);
+    (*arrRows) = (pipeSymbolsFound + 1);
     (*arguments) = malloc((*arrRows) * sizeof(char **)); // create rows
-    for (int i = 0; i < symbolsFound + 1; i++) {
-        (*arguments)[i] = (char **) "";
+    for (int i = 0; i < (*arrRows); i++) {
+        (*arguments)[i] = NULL;
     }
 
     int wildCardCount = 0;
@@ -193,8 +228,13 @@ void create_2d_array(char *const *instructions, const int *tokenIndex, bool *val
         }
     }
     (*arrCols) = *tokenIndex + wildCardCount + 1;
-    for (int i = 0; i < symbolsFound + 1; i++) {
-        (*arguments)[i] = calloc((*arrCols), sizeof(char *)); // create columns
+    for (int i = 0; i < (*arrRows); i++) {
+        (*arguments)[i] = malloc((*arrCols) * sizeof(char *)); // create columns
+    }
+    for (int i = 0; i < (*arrRows); i++) {
+        for (int j = 0; j < (*arrCols); j++) {
+            (*arguments)[i][j] = NULL;
+        }
     }
 
     int index = 0;
@@ -205,12 +245,16 @@ void create_2d_array(char *const *instructions, const int *tokenIndex, bool *val
             // args with no path attached
             (*cmd1) = strdup(instructions[index]); // ex: "/bin/ls"
             find_path(cmd1, validExecution);
-            check_for_wildcard(instructions, arguments, index, rowPos, colPos);
+            check_for_wildcard(instructions, arguments, index,rowPos, colPos);;
             colPos++;
-        }
-        if (index > 0) { // fill out first row until "|" is encountered.
+        } else { // fill out first row until "|" is encountered.
             if (strcmp(instructions[index], "|") != 0) {
-                check_for_wildcard(instructions, arguments, index, rowPos, colPos);
+                if ((strcmp(instructions[index], "<") == 0) | (strcmp(instructions[index], ">") == 0)) {
+                    (*arguments)[rowPos][colPos] = NULL;
+                } else {
+                    check_for_wildcard(instructions, arguments, index,rowPos, colPos);
+                }
+
                 colPos++;
             } else { // after '|' is encountered. we end up here. adv to next row. set col = 0. adv index and fill
                 (*arguments)[rowPos][colPos] = NULL;
@@ -220,14 +264,11 @@ void create_2d_array(char *const *instructions, const int *tokenIndex, bool *val
                 // args with no path attached
                 (*cmd2) = strdup(instructions[index]); // ex: : "/bin/wc". After a '|', there must be a cmd
                 find_path(cmd2, validExecution);
-                check_for_wildcard(instructions, arguments, index, rowPos, colPos);
+                check_for_wildcard(instructions, arguments, index,rowPos, colPos);
                 colPos++;
             }
         }
         index++;
-        if (index == *tokenIndex + wildCardCount + 1) {
-            (*arguments)[rowPos][colPos] = NULL;
-        }
     }
 }
 
@@ -235,68 +276,28 @@ void check_for_wildcard(char *const *instructions, char ****arguments, int index
     if (strchr(instructions[index], '*') != NULL) {
         glob_t paths;
         glob(instructions[index], GLOB_NOCHECK | GLOB_TILDE, NULL, &paths);
-        for (int j = 0; j < paths.gl_pathc; j++) {
-            //printf("%s\n", (*arguments)[rowPos][colPos]);
-            //free((*arguments)[rowPos][colPos]);
+        for (int j = 0; j < paths.gl_pathc; j++) {;
             (*arguments)[rowPos][colPos] = strdup(paths.gl_pathv[j]);
             colPos++;
         }
         globfree(&paths);
     } else {
-        free((*arguments)[rowPos][colPos]);
         (*arguments)[rowPos][colPos] = strdup(instructions[index]);
-        //colPos++;
     }
 }
 
-
 void
-use_redirection(bool *validExecution, char ***arguments, const size_t *arrRows, const size_t *arrCols, int indirect,
-                int outdirect,
-                int din, int dout) {
-    for (int row = 0; row < *arrRows; row++) {
-        for (int col = 0; col < *arrCols; col++) {
-            if (arguments[row][col] != NULL) {
-                if (strcmp(arguments[row][col], "<") == 0) {
-                    indirect = col + 1;
-                    if (indirect) {
-                        // your indirect is called. see end of this file
-                        is_indirect(arguments, row, indirect, din, validExecution);
-                    }
-                } else if (strcmp(arguments[row][col], ">") == 0) {
-                    outdirect = col + 1;
-                    if (outdirect) {
-                        // your outdirect is called. see end of this file
-                        is_outdirect(arguments, row, outdirect, dout, validExecution);
-                    }
-                }
+use_redirection(char *const *instructions, const int *tokenIndex, char **inFile, char **outFile) {
+    for (int i = 0; i < *tokenIndex; i++) {
+        if (instructions[i] != NULL) {
+            if (strcmp(instructions[i], "<") == 0) {
+                free(*inFile);
+                *inFile = strdup(instructions[i + 1]);
+            } else if (strcmp(instructions[i], ">") == 0) {
+                free(*outFile);
+                *outFile = strdup(instructions[i + 1]);
             }
         }
     }
 }
-
-void is_indirect(char ***arguments, int iRow, int indirect, int din, bool *validExecution) {
-    din = open(arguments[iRow][indirect], O_RDONLY);
-    if (din == -1) {
-        printf("Failed to open file! (%s)\n", strerror(errno));
-        *validExecution = false;
-        return;
-    }
-    dup2(din, STDIN_FILENO);
-    close(din);
-    arguments[iRow][indirect - 1] = NULL;
-}
-
-void is_outdirect(char ***arguments, int iRow, int outdirect, int dout, bool *validExecution) {
-    dout = open(arguments[iRow][outdirect], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP);
-    if (dout == -1) {
-        printf("Failed to to open file! (%s)\n", strerror(errno));
-        *validExecution = false;
-        return;
-    }
-    dup2(dout, STDOUT_FILENO);
-    close(dout);
-    arguments[iRow][outdirect - 1] = NULL;
-}
-
 
