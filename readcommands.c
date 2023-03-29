@@ -119,8 +119,9 @@ void helper_create_tokens(char *par[], char *instr[], char *payload, char *token
                         len -= 2;
                         break;
                     default: 
-                        // move the backslash to the current pos
-                        tokens[i] = '\\';
+                        tokens[i] = tokens[i+1];
+                        // shift the rest of the token to the left
+                        memmove(tokens + i + 1, tokens + i + 2, len - i - 1);
                         break;
                 }
             }
