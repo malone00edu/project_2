@@ -50,12 +50,14 @@ Similarly, strcmp() is used to detect if pipes are found in the instructions. Tw
 
 **EXTENSIONS:**
 
-**Escape Sequence**
+**Escape Sequence** 
+
 Escape sequence allows you to treat commands as regular tokens. if you run the code echo hello>world the program will think that > is a command and redirects it to the output world. If you do echo hello\>world, it will treat the > as a regular token, or part of the string. The output will be hello>world.
 
 A switch case is use to handle escape characters such as whitespace, pipes, redirects, if '\' is detected before these character, the escaped character willb be moved to the current position and the rest of the token is shifted to the left to remove the backslash using memmove().
 
 **Home**
+
 Home extension  takes you back to the user's home directory when you 'cd with no arugments.
 
 The builtin_cd function checks if a directory argument is given. If yes, chdir() is used to change directory. If no argument is given, it gets the value of the HOME environment variable and change the directory back to the user's home dir. getenv() is used to retrieve the value of an environment variable, in this case, the HOME environment variable - the user's home directory. If the directory does not exist, the function prints an error message.'Sprintf' used to concatenate the home environment variable and the rest of the directory string, from the second character if it starts with a ~. 
@@ -78,16 +80,38 @@ After calling make, type ' ./mysh ' to run the program.
 
 **///USE THESE COMMANDS TO TEST///** <br />
 
-pwd <br />
-cd ../     (to test if the home extension work just cd with no arguments and ls)  <br />
-ls <br />
-cat mysh.c <br />
-ls *.c > newfile.txt <br />
-ls m*h.c  <br />
-ls > redirec.txt <br />
-cat < redirec.txt > redirec2.txt  <br />
-ls | sort <br />
-ls -l | wc > newfile.txt <br />
+Input: 'pwd' 
+<br>Output: should print the current working directory. (testing the built in function)
+
+Input: 'cd' 
+<br>Output: should take you back to the home directory. (testing home extension)
+
+Input: 'echo hello\ world' 
+<br>Output: should print 'hello world' (testing escape sequence - you can use another cmd instead of echo)
+
+Input: 'echo hello\> world' 
+<br>Output: should print 'hello> world'
+
+Input: 'ls' 
+<br>Output: should list all files in current directory (could test other basic functions like cat, touch)
+
+Input: 'ls *.c'
+<br>Output: should list all files with *.c extensions (testing wildcards)
+
+Input: 'ls > redirect.txt'
+<br>Output: should put the results of ls in redirect.txt folder (testing redirects -cat the new file when testing )
+
+Input: 'cat < redirect.txt > output.txt'
+<br>Output: read the contents of redirect.txt and put it in output.txt (testing redirects)
+
+Input: 'ls -l | wc'
+<br>Output: the output of ls -l is passed as input to wc, which counts the number of lines, words, and bytes in ls -l (testing pipes)
+
+Input: 'ls -l | wc > output.txt'
+<br>Output: similar to above but redirect the output to output.txt (testing redirects with pipes)
+
+Input: 'ls *.c > newfile.txt'
+<br>Output: Gets all the files with .c extension in teh directory and redirects to newfile.txt (testing redirects with wildcards)
 
 
 
