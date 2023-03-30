@@ -132,8 +132,9 @@ Input: 'exit'
 <br>Output: Exits the program!
 
 
-**--To test errors prompts, input wrong file names etc... <br>
---The program does not support wildcards/redircs/piping with built in functions like cd, cwd, and exit
+**To test errors prompts, input wrong file names etc... ** <br> 
+**The program does not support wildcards/redircs/piping with built in functions like cd, cwd, and exit**
+
 
 
 
