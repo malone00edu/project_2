@@ -66,6 +66,7 @@ The builtin_cd function checks if a directory argument is given. If yes, chdir()
 Glob library allows the usage of wildcards such as: <br>
 ls \*.c - listing all the .c files in the directory <br>
 ls foo\*bar - list file that starts with foo and ends with bar.
+--Note this program does not support wildcards for commands, only instructions (no ech*o)
 
 <hr>
 
