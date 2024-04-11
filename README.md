@@ -2,6 +2,9 @@
 spring 2023 - cs214 - project 2
 
 
+https://github.com/malone00edu/project_2/assets/93667152/fdc6f2f2-5242-4eee-8ab6-81b2e28ad3f5
+
+
 **INTRO:** 
 
 This is a basic shell program in C that can run in interactive or batch mode. 
