@@ -1,10 +1,11 @@
 # project_2
 spring 2023 - cs214 - project 2
 
-
 **INTRO:** 
 
 This is a basic shell program in C that can run in interactive or batch mode. 
+
+https://github.com/malone00edu/project_2/assets/93667152/fdc6f2f2-5242-4eee-8ab6-81b2e28ad3f5
 
 When you enter a command, the program takes the input and separates it into individual commands and their arguments. It then checks if the command is built-in (cd / pwd) or external (ls / cat..)  If it's a built-in command, the program executes it directly using functions like chdir() or getcwd(). If it's an external command, the program creates a child process using fork() and runs the command using execv(). External commands also detects wildcards, redirections, and pipes (more details later).
 
