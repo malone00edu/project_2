@@ -4,7 +4,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <errno.h>
 #include "header.h"
 
 void builtin_cd(char *const *instructions) {
@@ -23,7 +22,7 @@ void builtin_cd(char *const *instructions) {
             return;
         }
         char newdir[strlen(home) + strlen(dir)];
-        sprintf(newdir, "%s%s", home, dir+1);
+        snprintf(newdir, (unsigned long) "%s%s", home, dir + 1);
         dir = newdir;
     }
 

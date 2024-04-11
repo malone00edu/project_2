@@ -7,7 +7,6 @@ void execute(char **instructions, int *tokenIndex, bool *validExecution) {
     char ***arguments = NULL; // 2D Array
     static char *cmd1 = NULL;
     static char *cmd2 = NULL;
-    size_t redirectSymbolsFound = 0;
     size_t pipeSymbolsFound = 0;
     bool pipeFound = false;
     bool redirectInFound = false;
@@ -21,13 +20,10 @@ void execute(char **instructions, int *tokenIndex, bool *validExecution) {
     for (int i = 0; i < *tokenIndex; i++) {
         if ((strcmp(instructions[i], "<") == 0)) {
             redirectInFound = true;
-            redirectSymbolsFound++;
         }
         if ((strcmp(instructions[i], ">") == 0)) {
             redirectOutFound = true;
-            redirectSymbolsFound++;
         }
-
         if ((strcmp(instructions[i], "|") == 0)) {
             pipeFound = true;
             pipeSymbolsFound++;
@@ -249,7 +245,7 @@ create_2d_array(char *const *instructions, const int *tokenIndex, bool *validExe
             colPos++;
         } else { // fill out first row until "|" is encountered.
             if (strcmp(instructions[index], "|") != 0) {
-                if ((strcmp(instructions[index], "<") == 0) | (strcmp(instructions[index], ">") == 0)) {
+                if ((strcmp(instructions[index], "<") == 0) || (strcmp(instructions[index], ">") == 0)) {
                     (*arguments)[rowPos][colPos] = NULL;
                 } else {
                     check_for_wildcard(instructions, arguments, index,rowPos, colPos);
